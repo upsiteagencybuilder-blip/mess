@@ -1,0 +1,146 @@
+// Mess Management & Seat Finder Platform schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  role      String   @default("TENANT") // TENANT | OWNER | STAFF
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messes        Mess[]         @relation("OwnedMesses")
+  memberships   Member[]
+  bookings      BookingRequest[]
+  invoices      Invoice[]
+}
+
+model Mess {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  name          String
+  description   String?
+  ownerId       String
+  owner         User     @relation("OwnedMesses", fields: [ownerId], references: [id])
+  type          String   @default("STUDENT_MALE") // STUDENT_MALE | STUDENT_FEMALE | PROFESSIONAL | MIXED
+  address       String
+  area          String
+  city          String
+  lat           Float
+  lng           Float
+  rentPerSeat   Int
+  contactNumber String
+  photos        String   // JSON array of image URLs
+  amenities     String   // JSON array of amenity keys
+  totalRooms    Int      @default(0)
+  totalSeats    Int      @default(0)
+  vacantSeats   Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  rooms    Room[]
+  members  Member[]
+  bookings BookingRequest[]
+  utility  UtilityBill[]
+  invoices Invoice[]
+}
+
+model Room {
+  id         String   @id @default(cuid())
+  messId     String
+  mess       Mess     @relation(fields: [messId], references: [id], onDelete: Cascade)
+  roomNumber String
+  capacity   Int      @default(2)
+  seats      Seat[]
+  createdAt  DateTime @default(now())
+}
+
+model Seat {
+  id         String   @id @default(cuid())
+  roomId     String
+  room       Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  messId     String
+  seatNumber String
+  status     String   @default("VACANT") // VACANT | OCCUPIED
+  member     Member?
+  createdAt  DateTime @default(now())
+}
+
+model Member {
+  id        String    @id @default(cuid())
+  messId    String
+  mess      Mess      @relation(fields: [messId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  seatId    String    @unique
+  seat      Seat      @relation(fields: [seatId], references: [id], onDelete: Cascade)
+  joinDate  DateTime  @default(now())
+  leaveDate DateTime?
+  status    String    @default("ACTIVE") // ACTIVE | LEFT
+  createdAt DateTime  @default(now())
+
+  invoices Invoice[]
+}
+
+model BookingRequest {
+  id        String   @id @default(cuid())
+  messId    String
+  mess      Mess     @relation(fields: [messId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  name      String
+  phone     String
+  message   String?
+  status    String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  createdAt DateTime @default(now())
+}
+
+model UtilityBill {
+  id          String   @id @default(cuid())
+  messId      String
+  mess        Mess     @relation(fields: [messId], references: [id], onDelete: Cascade)
+  month       Int
+  year        Int
+  electricity Int      @default(0)
+  gas         Int      @default(0)
+  internet    Int      @default(0)
+  garbage     Int      @default(0)
+  caretaker   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@unique([messId, month, year])
+}
+
+model Invoice {
+  id              String    @id @default(cuid())
+  messId          String
+  mess            Mess      @relation(fields: [messId], references: [id], onDelete: Cascade)
+  memberId        String
+  member          Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  month           Int
+  year            Int
+  rent            Int       @default(0)
+  electricityShare Int     @default(0)
+  gasShare        Int       @default(0)
+  internetShare   Int       @default(0)
+  garbageShare    Int       @default(0)
+  caretakerShare  Int       @default(0)
+  total           Int       @default(0)
+  status          String    @default("PENDING") // PENDING | PAID
+  createdAt       DateTime  @default(now())
+  paidAt          DateTime?
+
+  @@unique([memberId, month, year])
+}
