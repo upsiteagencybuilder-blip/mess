@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { requireUser, getCurrentUser } from "@/lib/auth";
+import { requireUser, getCurrentUser, canManageMess } from "@/lib/auth";
 import { recomputeVacantSeats } from "@/lib/serialize";
 
 export async function GET(
@@ -72,7 +72,7 @@ export async function PUT(
       include: { mess: { select: { ownerId: true, id: true } } },
     });
     if (!member) return Response.json({ error: "Not found" }, { status: 404 });
-    if (member.mess.ownerId !== user.id) {
+    if (!canManageMess(user, member.mess.ownerId)) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -110,7 +110,7 @@ export async function DELETE(
       include: { mess: { select: { ownerId: true, id: true } } },
     });
     if (!member) return Response.json({ error: "Not found" }, { status: 404 });
-    if (member.mess.ownerId !== user.id) {
+    if (!canManageMess(user, member.mess.ownerId)) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 

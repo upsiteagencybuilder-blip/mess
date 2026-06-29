@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, canManageMess } from "@/lib/auth";
 import { recomputeVacantSeats } from "@/lib/serialize";
 
 export async function PUT(
@@ -27,7 +27,7 @@ export async function PUT(
       select: { ownerId: true },
     });
     if (!mess) return Response.json({ error: "Mess not found" }, { status: 404 });
-    if (mess.ownerId !== user.id) {
+    if (!canManageMess(user, mess.ownerId)) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 

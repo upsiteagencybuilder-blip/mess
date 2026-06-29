@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, canMutateMess } from "@/lib/auth";
 import { serializeMess } from "@/lib/serialize";
 
 export async function GET(
@@ -63,7 +63,7 @@ export async function PUT(
     const { id } = await params;
     const mess = await db.mess.findUnique({ where: { id }, select: { ownerId: true } });
     if (!mess) return Response.json({ error: "Not found" }, { status: 404 });
-    if (mess.ownerId !== user.id) {
+    if (!canMutateMess(user, mess.ownerId)) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -121,7 +121,7 @@ export async function DELETE(
     const { id } = await params;
     const mess = await db.mess.findUnique({ where: { id }, select: { ownerId: true } });
     if (!mess) return Response.json({ error: "Not found" }, { status: 404 });
-    if (mess.ownerId !== user.id) {
+    if (!canMutateMess(user, mess.ownerId)) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
     await db.mess.delete({ where: { id } });

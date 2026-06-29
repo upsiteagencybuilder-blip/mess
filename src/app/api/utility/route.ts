@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, canManageMess } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -13,14 +13,14 @@ export async function GET(request: Request) {
       return Response.json({ error: "messId query param required" }, { status: 400 });
     }
 
-    // OWNER must own the mess; STAFF may view any.
+    // OWNER must own the mess; STAFF + ADMIN may view any.
     if (user.role === "OWNER") {
       const mess = await db.mess.findUnique({
         where: { id: messId },
         select: { ownerId: true },
       });
       if (!mess) return Response.json({ error: "Mess not found" }, { status: 404 });
-      if (mess.ownerId !== user.id) {
+      if (!canManageMess(user, mess.ownerId)) {
         return Response.json({ error: "Forbidden" }, { status: 403 });
       }
     }
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       select: { ownerId: true },
     });
     if (!mess) return Response.json({ error: "Mess not found" }, { status: 404 });
-    if (mess.ownerId !== user.id) {
+    if (!canManageMess(user, mess.ownerId)) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 

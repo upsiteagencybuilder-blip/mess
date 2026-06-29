@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { requireUser, getCurrentUser } from "@/lib/auth";
+import { requireUser, getCurrentUser, canManageMess } from "@/lib/auth";
 
 export async function GET(
   _request: Request,
@@ -67,7 +67,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireUser(["OWNER"]);
+    const user = await requireUser(["OWNER", "STAFF"]);
     const { id } = await params;
     const body = await request.json();
     const { status } = body as { status?: string };
@@ -81,7 +81,8 @@ export async function PUT(
       include: { mess: { select: { ownerId: true } } },
     });
     if (!invoice) return Response.json({ error: "Not found" }, { status: 404 });
-    if (invoice.mess.ownerId !== user.id) {
+    // OWNER must own the mess; STAFF (collects payments) + ADMIN may update any.
+    if (user.role === "OWNER" && !canManageMess(user, invoice.mess.ownerId)) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 

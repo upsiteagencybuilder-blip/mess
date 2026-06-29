@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, canManageMess } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -62,7 +62,7 @@ export async function GET(request: Request) {
         select: { ownerId: true },
       });
       if (!mess) return Response.json({ error: "Mess not found" }, { status: 404 });
-      if (mess.ownerId !== user.id) {
+      if (!canManageMess(user, mess.ownerId)) {
         return Response.json({ error: "Forbidden" }, { status: 403 });
       }
     }
@@ -139,7 +139,7 @@ export async function POST(request: Request) {
       select: { ownerId: true, rentPerSeat: true },
     });
     if (!mess) return Response.json({ error: "Mess not found" }, { status: 404 });
-    if (mess.ownerId !== user.id) {
+    if (!canManageMess(user, mess.ownerId)) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 

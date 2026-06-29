@@ -70,8 +70,48 @@ export async function requireUser(roles?: string[]) {
   if (!user) {
     throw new Error("UNAUTHORIZED");
   }
+  // ADMIN always has access to any role-protected route (platform-wide control)
+  if (user.role === "ADMIN") {
+    return user;
+  }
   if (roles && !roles.includes(user.role)) {
     throw new Error("FORBIDDEN");
   }
   return user;
+}
+
+/**
+ * Require a specific role WITHOUT admin override. Use for admin-only actions
+ * that even owners/staff shouldn't touch (e.g., admin stats, user deletion).
+ */
+export async function requireAdmin() {
+  const user = await getCurrentUser();
+  if (!user) {
+    throw new Error("UNAUTHORIZED");
+  }
+  if (user.role !== "ADMIN") {
+    throw new Error("FORBIDDEN");
+  }
+  return user;
+}
+
+/**
+ * Check whether the current user can manage a mess (is the owner OR an admin).
+ * STAFF can also access (read-only monitoring per platform spec).
+ */
+export function canManageMess(
+  user: { id: string; role: string },
+  messOwner: string
+): boolean {
+  return user.role === "ADMIN" || messOwner === user.id;
+}
+
+/**
+ * Check whether the user can mutate mess data (owner or admin only — not staff).
+ */
+export function canMutateMess(
+  user: { id: string; role: string },
+  messOwner: string
+): boolean {
+  return user.role === "ADMIN" || messOwner === user.id;
 }

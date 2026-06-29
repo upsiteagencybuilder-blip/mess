@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, canManageMess } from "@/lib/auth";
 
 export async function DELETE(
   _request: Request,
@@ -14,7 +14,7 @@ export async function DELETE(
       include: { mess: { select: { ownerId: true } } },
     });
     if (!bill) return Response.json({ error: "Not found" }, { status: 404 });
-    if (bill.mess.ownerId !== user.id) {
+    if (!canManageMess(user, bill.mess.ownerId)) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 

@@ -517,3 +517,41 @@ Stage Summary:
 - Full functional admin dashboard with platform-wide analytics + management of users, messes, bookings, invoices.
 - Admin can: view platform stats/charts, search/filter users, change user roles (TENANT/OWNER/STAFF/ADMIN), delete users/messes, view all bookings & invoices.
 - 5 tabs all verified working with real data. Admin account: admin@mess.com / 123456.
+
+---
+Task ID: 16
+Agent: main (orchestrator)
+Task: Fix all role relationships + guards for production-ready access control
+
+Work Log:
+- Audited all 19 API routes for role guard issues. Found: no ADMIN access to owner/staff routes, ownership checks blocked ADMIN, STAFF couldn't mark invoices paid, booking approval didn't auto-assign seats.
+- Updated src/lib/auth.ts:
+  * `requireUser(roles)` now grants ADMIN automatic access to ANY role-protected route (platform-wide control).
+  * Added `requireAdmin()` — strict admin-only guard (no override).
+  * Added `canManageMess(user, messOwner)` — returns true if owner OR admin (for ownership checks).
+  * Added `canMutateMess(user, messOwner)` — same (for mutations).
+- Fixed 14 ownership checks across 8 route files to use `canManageMess`/`canMutateMess` (allows ADMIN to manage any mess):
+  * mess/[id] PUT + DELETE
+  * utility GET + POST, utility/[id] DELETE
+  * invoice GET (owner check) + POST (generate), invoice/[id] PUT (owner check)
+  * booking/[id] PUT (canManageMess)
+  * member GET + POST, member/[id] PUT + DELETE
+  * seat/[id] PUT
+- Fixed owner-stats route: ADMIN gets all messes' stats (not just owned); ownership validation allows ADMIN.
+- **Booking approval workflow (critical logic fix)**: rewrote booking PUT to auto-assign seat on APPROVED. When status=APPROVED + seatId + booking has userId (logged-in tenant): creates Member, sets Seat=OCCUPIED, recomputes vacantSeats. Verified: approve tanvir's booking → seat R1-S1 OCCUPIED, vacantSeats 32→31, tanvir gets membership.
+- **STAFF invoice access fix**: invoice PUT now allows STAFF to mark any invoice PAID (staff collect payments) — OWNER still restricted to own mess, STAFF+ADMIN can update any.
+- Verified all 4 roles end-to-end:
+  * ADMIN → owner-stats (141 seats, platform-wide) ✓, admin/stats (8 users, 8 messes) ✓
+  * OWNER → PUT own mess (200) ✓, admin/stats denied (403) ✓
+  * STAFF → GET members ✓, mark invoice PAID ✓
+  * TENANT → owner-stats denied (403) ✓, admin/stats denied (403) ✓
+- bun run lint → 0 errors, 0 warnings
+
+Stage Summary:
+- All 4 roles (TENANT, OWNER, STAFF, ADMIN) now have correct, logical access control:
+  * TENANT: view public messes, book seats, view own invoices/bookings, manage own profile
+  * OWNER: full CRUD on own messes (rooms/seats/members/billing/invoices/bookings)
+  * STAFF: view any mess's members/utility/invoices (read-only), mark invoices PAID (collect payments)
+  * ADMIN: full platform control — access everything, manage all users/messes/bookings/invoices
+- Booking approval → auto seat assignment workflow implemented (APPROVED + seatId → creates member + occupies seat + updates vacancy). This closes the logical loop: tenant books → owner approves with seat → tenant becomes member → sees bills.
+- Production-ready access control: ownership checks use canManageMess (owner OR admin), admin routes use requireAdmin (strict).

@@ -20,18 +20,23 @@ export async function GET(
     }
 
     // If no specific mess, aggregate across all messes owned by user
+    // (ADMIN gets all messes on the platform)
     if (targetMessIds.length === 0) {
       const owned = await db.mess.findMany({
-        where: { ownerId: user.id },
+        where: user.role === "ADMIN" ? {} : { ownerId: user.id },
         select: { id: true },
       });
       targetMessIds = owned.map((m) => m.id);
     }
 
-    // Validate ownership
+    // Validate ownership (ADMIN can access any mess's stats)
     if (targetMessIds.length > 0) {
+      const where =
+        user.role === "ADMIN"
+          ? { id: { in: targetMessIds } }
+          : { id: { in: targetMessIds }, ownerId: user.id };
       const owned = await db.mess.findMany({
-        where: { id: { in: targetMessIds }, ownerId: user.id },
+        where,
         select: { id: true },
       });
       if (owned.length === 0) {
