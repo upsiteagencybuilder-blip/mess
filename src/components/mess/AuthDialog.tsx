@@ -42,6 +42,7 @@ interface AuthResponse {
 }
 
 const DEMO_ACCOUNTS = [
+  { email: "admin@mess.com", label: "অ্যাডমিন (Admin)" },
   { email: "rahim@mess.com", label: "মালিক (Owner)" },
   { email: "tanvir@tenant.com", label: "সিট অন্বেষণকারী (Tenant)" },
   { email: "staff@mess.com", label: "স্টাফ (Staff)" },
@@ -95,7 +96,9 @@ export default function AuthDialog() {
           ? "owner-dashboard"
           : u.role === "STAFF"
             ? "staff-dashboard"
-            : "tenant-dashboard"
+            : u.role === "ADMIN"
+              ? "admin-dashboard"
+              : "tenant-dashboard"
       );
     }
     toast({

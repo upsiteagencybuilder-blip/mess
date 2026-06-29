@@ -477,3 +477,43 @@ Stage Summary:
 - Firebase Analytics (project: mess-a4049, measurementId: G-WQNMCLD8SN) integrated and active.
 - SSR-safe: analytics only initializes in the browser via isSupported() + window guard; Firebase App initializes on both server & client.
 - No impact on existing functionality; page still renders correctly with map + filters + mess list.
+
+---
+Task ID: 15
+Agent: main (orchestrator)
+Task: Build full functional admin dashboard with platform-wide management
+
+Work Log:
+- Created 6 admin API routes (all guarded by ADMIN role check):
+  * GET /api/admin/stats — platform-wide analytics (user counts by role, mess stats, occupancy, bookings, revenue, 6-month revenue + user growth, recent users/bookings)
+  * GET /api/admin/users — all users with counts (owned messes, memberships, bookings)
+  * PUT /api/admin/users/[id] — change user role
+  * DELETE /api/admin/users/[id] — delete user (prevents self-deletion)
+  * GET /api/admin/messes — all messes with owner info, vacancy, member/booking counts
+  * DELETE /api/admin/messes/[id] — delete mess
+  * GET /api/admin/bookings — all booking requests across platform
+  * GET /api/admin/invoices — all invoices across platform
+- Added ADMIN role: updated constants (ROLES), store (ViewMode + SessionUser role type), auth routing.
+- Seeded admin account: admin@mess.com / 123456 (name: সুপার অ্যাডমিন).
+- Built AdminDashboard component (src/components/dashboards/admin/AdminDashboard.tsx) with 5 tabs:
+  1. **ওভারভিউ (Overview)**: 4 stat cards (total users, messes, occupancy %, monthly revenue), 4 mini-stats, 6-month revenue bar chart (collected+outstanding), user growth bar chart, role breakdown bars, mess type breakdown bars, recent users list, recent bookings list
+  2. **ইউজার (Users)**: searchable table with role filter dropdown, each user shows avatar/name/email/phone/role-dropdown (changeable), mess/member/booking counts, join date, delete button with confirm dialog
+  3. **মেস (Messes)**: searchable table showing mess name/code/type/area/owner/rent/vacancy/member+booking counts, delete button with confirm
+  4. **বুকিং (Bookings)**: filterable table (by status) showing applicant name/phone/email, mess info, message, date, status badge
+  5. **ইনভয়েস (Invoices)**: filterable table (paid/pending) showing mess/member/seat, month, total, status, paid date; summary badges for total collected + outstanding
+- Header: dark gradient (slate-900 → teal-900) with rose accent for ADMIN, "এক্সপ্লোরে ফিরুন" + profile + logout.
+- Wired admin-dashboard view into page.tsx; updated viewForRole, auth redirect (bounce-to-landing), and AuthDialog afterAuthSuccess to route ADMIN → admin-dashboard.
+- Added admin demo account to AuthDialog quick-fill (first in list).
+- Verified with Agent Browser:
+  * Login as admin@mess.com → admin-dashboard loads ✓
+  * Overview: 8 users, 8 messes, 138 vacant seats, 2% occupancy, revenue chart ✓
+  * Users tab: 8 users in table with role dropdowns + delete ✓
+  * Messes tab: 8 messes with owner/vacancy info ✓
+  * Bookings tab: 2 bookings ✓
+  * Invoices tab: 3 invoices with collected/outstanding totals ✓
+- bun run lint → 0 errors, 0 warnings
+
+Stage Summary:
+- Full functional admin dashboard with platform-wide analytics + management of users, messes, bookings, invoices.
+- Admin can: view platform stats/charts, search/filter users, change user roles (TENANT/OWNER/STAFF/ADMIN), delete users/messes, view all bookings & invoices.
+- 5 tabs all verified working with real data. Admin account: admin@mess.com / 123456.

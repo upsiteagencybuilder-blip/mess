@@ -10,12 +10,14 @@ import Footer from "@/components/Footer";
 import OwnerDashboard from "@/components/dashboards/owner/OwnerDashboard";
 import TenantDashboard from "@/components/dashboards/tenant/TenantDashboard";
 import StaffDashboard from "@/components/dashboards/staff/StaffDashboard";
+import AdminDashboard from "@/components/dashboards/admin/AdminDashboard";
 import { useAppStore, type SessionUser, type ViewMode } from "@/store/app-store";
 import { apiFetch, type MessListItem } from "@/lib/api-client";
 
 function viewForRole(role: string): ViewMode {
   if (role === "OWNER") return "owner-dashboard";
   if (role === "STAFF") return "staff-dashboard";
+  if (role === "ADMIN") return "admin-dashboard";
   return "tenant-dashboard";
 }
 
@@ -80,7 +82,8 @@ export default function Home() {
     const isDashboard =
       view === "owner-dashboard" ||
       view === "tenant-dashboard" ||
-      view === "staff-dashboard";
+      view === "staff-dashboard" ||
+      view === "admin-dashboard";
     if (isDashboard && !user) {
       setView("landing");
       setAuthOpen(true, "login");
@@ -134,6 +137,15 @@ export default function Home() {
         <AuthDialog />
         <ProfileDialog />
       </div>
+    );
+  }
+  if (view === "admin-dashboard") {
+    return (
+      <>
+        <AdminDashboard />
+        <AuthDialog />
+        <ProfileDialog />
+      </>
     );
   }
 

@@ -93,6 +93,16 @@ async function main() {
     },
   });
 
+  const admin1 = await db.user.create({
+    data: {
+      email: "admin@mess.com",
+      password: hashPassword("123456"),
+      name: "সুপার অ্যাডমিন",
+      phone: "01714000001",
+      role: "ADMIN",
+    },
+  });
+
   const owners = [
     { user: owner1, name: "এম এস স্টুডেন্টস মেস", type: "STUDENT_MALE", area: "Kazla", city: "Rajshahi", lat: 24.3630, lng: 88.6328, rent: 2000, phone: "01711000001", rooms: 6, perRoom: 3, photoIdx: 0, amenities: ["wifi","filteredWater","generator","security","cctv","kitchen","geyser","rooftop"], desc: "কাজলা বাজারের পাশে, রাজশাহী বিশ্ববিদ্যালয় মূল ফটক থেকে ৫ মিনিট হাঁটা দূরত্বে অবস্থিত। ছাত্রদের জন্য সাশ্রয়ী ও পরিচ্ছন্ন মেস।" },
     { user: owner2, name: "শুভ ছাত্রাবাস", type: "STUDENT_MALE", area: "Motihar", city: "Rajshahi", lat: 24.3710, lng: 88.6368, rent: 1500, phone: "01711000002", rooms: 8, perRoom: 4, photoIdx: 1, amenities: ["wifi","filteredWater","generator","kitchen","geyser","parking"], desc: "মতিহারে রুয়েট ও রাবি শিক্ষার্থীদের জন্য বাজেট-ফ্রেন্ডলি মেস। ৩ ও ৪ সিটের রুম উপলব্ধ।" },
@@ -258,6 +268,7 @@ async function main() {
   console.log("Owners: rahim@mess.com / karim@mess.com / salma@mess.com (pass: 123456)");
   console.log("Tenant: tanvir@tenant.com (pass: 123456)");
   console.log("Staff: staff@mess.com (pass: 123456)");
+  console.log("Admin: admin@mess.com (pass: 123456)");
 }
 
 main()

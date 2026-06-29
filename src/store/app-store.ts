@@ -6,14 +6,15 @@ export type ViewMode =
   | "mess-detail"
   | "owner-dashboard"
   | "tenant-dashboard"
-  | "staff-dashboard";
+  | "staff-dashboard"
+  | "admin-dashboard";
 
 export interface SessionUser {
   id: string;
   email: string;
   name: string;
   phone?: string | null;
-  role: "TENANT" | "OWNER" | "STAFF";
+  role: "TENANT" | "OWNER" | "STAFF" | "ADMIN";
   avatar?: string | null;
 }
 

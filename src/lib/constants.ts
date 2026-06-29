@@ -32,6 +32,7 @@ export const ROLES = [
   { value: "TENANT", label: "সিট অন্বেষণকারী / মেম্বর", labelEn: "Seat Seeker / Member" },
   { value: "OWNER", label: "মেস মালিক / ম্যানেজার", labelEn: "Owner / Manager" },
   { value: "STAFF", label: "স্টাফ / কেয়ারটেকার", labelEn: "Staff / Caretaker" },
+  { value: "ADMIN", label: "অ্যাডমিন", labelEn: "Admin" },
 ] as const;
 
 export function roleLabel(role: string): string {
