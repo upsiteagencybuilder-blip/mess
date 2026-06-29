@@ -456,3 +456,24 @@ Stage Summary:
   2. LIVE site fix: owner opens Settings → adjusts pin → saves → database updates
 - Nominatim geocoding (free OpenStreetMap service) powers address search — no API key needed, realistic for a real project.
 - Full flow verified: owner login → Settings → fix location → save → persists. Map shows corrected positions.
+
+---
+Task ID: 14
+Agent: main (orchestrator)
+Task: Add Firebase Analytics with user's project config
+
+Work Log:
+- Installed firebase@12.15.0 via bun.
+- Created src/lib/firebase.ts:
+  * Stores user's firebaseConfig (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId, measurementId: G-WQNMCLD8SN)
+  * Eagerly initializes Firebase App (safe on both server & client)
+  * getAnalyticsInstance() lazily initializes Analytics — guarded with `typeof window === 'undefined'` check + isSupported() check so SSR doesn't crash (getAnalytics needs window/document)
+- Created src/components/FirebaseAnalytics.tsx — client component that calls getAnalyticsInstance() in useEffect (browser-only mount), returns null (no UI).
+- Added <FirebaseAnalytics /> to root layout (src/app/layout.tsx) so analytics initializes on every page.
+- Verified: page loads (1271 chars body, 8 pins), no SSR crash, no console errors. `window.gtag` available in browser confirming Firebase Analytics loaded.
+- bun run lint → 0 errors, 0 warnings
+
+Stage Summary:
+- Firebase Analytics (project: mess-a4049, measurementId: G-WQNMCLD8SN) integrated and active.
+- SSR-safe: analytics only initializes in the browser via isSupported() + window guard; Firebase App initializes on both server & client.
+- No impact on existing functionality; page still renders correctly with map + filters + mess list.
