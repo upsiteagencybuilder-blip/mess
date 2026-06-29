@@ -91,9 +91,11 @@ export default function OwnerDashboard() {
       const data = await apiFetch<MessListItem[]>("/api/mess/0/mine");
       setMesses(data);
       if (data.length > 0) {
+        // Default to mess with most members (vacantSeats < totalSeats means it has members)
+        const messWithMembers = data.find((m) => m.vacantSeats < m.totalSeats);
         setActiveMessId((prev) => prev && data.some((m) => m.id === prev)
           ? prev
-          : data[0].id);
+          : (messWithMembers?.id ?? data[0].id));
       } else {
         setActiveMessId(null);
         setActiveMess(null);

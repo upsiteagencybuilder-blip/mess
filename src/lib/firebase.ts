@@ -1,5 +1,5 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
-import { getAnalytics, isSupported, type Analytics } from "firebase/analytics";
+import { getAnalytics, isSupported, type Analytics, logEvent } from "firebase/analytics";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -45,6 +45,23 @@ export async function getAnalyticsInstance(): Promise<Analytics | null> {
 
 // Eagerly init the app so it's ready immediately
 getFirebaseApp();
+
+/**
+ * Log a custom event to Firebase Analytics. Safe to call from anywhere —
+ * if Analytics isn't initialized yet (e.g. during SSR), it's a no-op.
+ */
+export function logAnalyticsEvent(eventName: string, params?: Record<string, unknown>): void {
+  if (typeof window === "undefined") return;
+  void getAnalyticsInstance().then((analytics) => {
+    if (analytics) {
+      try {
+        logEvent(analytics, eventName, params);
+      } catch (e) {
+        console.error("Firebase logEvent failed", e);
+      }
+    }
+  });
+}
 
 export { firebaseConfig };
 export default getFirebaseApp;

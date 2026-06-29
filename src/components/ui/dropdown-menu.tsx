@@ -45,7 +45,7 @@ function DropdownMenu({
   );
   return (
     <Ctx.Provider value={{ open, setOpen }}>
-      <span className="relative inline-flex">{children}</span>
+      <span className="relative inline-flex" style={{ position: "relative" }}>{children}</span>
     </Ctx.Provider>
   );
 }

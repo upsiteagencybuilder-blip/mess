@@ -34,6 +34,7 @@ import { ROLES, roleLabel } from "@/lib/constants";
 import { useAppStore, type SessionUser } from "@/store/app-store";
 import { useToast } from "@/hooks/use-toast";
 import { apiFetch } from "@/lib/api-client";
+import { logAnalyticsEvent } from "@/lib/firebase";
 
 interface AuthResponse {
   user?: SessionUser;
@@ -87,6 +88,8 @@ export default function AuthDialog() {
   const afterAuthSuccess = (u: SessionUser) => {
     setUser(u);
     setAuthOpen(false);
+    // Log login event to Firebase Analytics
+    logAnalyticsEvent("login", { method: "email", role: u.role });
     // Only navigate to dashboard if on landing.
     // If on mess-detail, stay there so user can complete booking.
     const currentView = useAppStore.getState().view;

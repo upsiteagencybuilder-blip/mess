@@ -40,6 +40,7 @@ import { useAppStore } from "@/store/app-store";
 import { useMessFilter } from "@/store/mess-filter-store";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { logAnalyticsEvent } from "@/lib/firebase";
 
 interface MessFullDetailProps {
   messes: MessListItem[];
@@ -134,6 +135,12 @@ export default function MessFullDetail({ messes }: MessFullDetailProps) {
         }),
       });
       setBookingStep("done");
+      // Log booking event to Firebase Analytics
+      logAnalyticsEvent("booking_request", {
+        mess_id: detail.id,
+        mess_name: detail.name,
+        rent: detail.rentPerSeat,
+      });
       toast({
         title: "বুকিং রিকোয়েস্ট সফল!",
         description: "মেস ম্যানেজার শীঘ্রই আপনার সাথে যোগাযোগ করবেন।",
