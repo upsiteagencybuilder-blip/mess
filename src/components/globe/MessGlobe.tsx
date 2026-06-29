@@ -7,7 +7,7 @@ import { BANGLADESH_AREAS } from "@/lib/constants";
 import type { MessListItem } from "@/lib/api-client";
 
 const GLOBE_RADIUS = 100;
-const DHAKA_CENTER = { lat: 23.685, lng: 90.3563 };
+const HUB_CENTER = { lat: 24.3636, lng: 88.6241 }; // Rajshahi University
 
 /** Convert latitude / longitude (degrees) to a 3D position on a sphere of the given radius. */
 function latLngToVector3(lat: number, lng: number, radius: number): THREE.Vector3 {
@@ -209,8 +209,8 @@ export default function MessGlobe({
     const markerGeo = new THREE.SphereGeometry(1.7, 12, 12);
     const pulseGeo = new THREE.SphereGeometry(1.3, 8, 8);
     const dhakaVec = latLngToVector3(
-      DHAKA_CENTER.lat,
-      DHAKA_CENTER.lng,
+      HUB_CENTER.lat,
+      HUB_CENTER.lng,
       GLOBE_RADIUS
     );
 

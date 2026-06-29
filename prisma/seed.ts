@@ -31,7 +31,7 @@ async function main() {
     data: {
       email: "rahim@mess.com",
       password: hashPassword("123456"),
-      name: "রহিম আহমেদ",
+      name: "মোঃ রহিম উদ্দিন",
       phone: "01711000001",
       role: "OWNER",
     },
@@ -40,7 +40,7 @@ async function main() {
     data: {
       email: "karim@mess.com",
       password: hashPassword("123456"),
-      name: "করিম উদ্দিন",
+      name: "আব্দুল করিম",
       phone: "01711000002",
       role: "OWNER",
     },
@@ -49,7 +49,7 @@ async function main() {
     data: {
       email: "salma@mess.com",
       password: hashPassword("123456"),
-      name: "সালমা আক্তার",
+      name: "সালমা বেগম",
       phone: "01711000003",
       role: "OWNER",
     },
@@ -59,7 +59,7 @@ async function main() {
     data: {
       email: "tanvir@tenant.com",
       password: hashPassword("123456"),
-      name: "তানভীর হাসান",
+      name: "তানভীর হোসেন",
       phone: "01712000001",
       role: "TENANT",
     },
@@ -68,7 +68,7 @@ async function main() {
     data: {
       email: "nila@tenant.com",
       password: hashPassword("123456"),
-      name: "নীলা রহমান",
+      name: "নিলুফা ইয়াসমিন",
       phone: "01712000002",
       role: "TENANT",
     },
@@ -77,7 +77,7 @@ async function main() {
     data: {
       email: "sabbir@tenant.com",
       password: hashPassword("123456"),
-      name: "সাব্বির খান",
+      name: "সাব্বির রহমান",
       phone: "01712000003",
       role: "TENANT",
     },
@@ -94,14 +94,14 @@ async function main() {
   });
 
   const owners = [
-    { user: owner1, name: "আল-মদিনা ছাত্র মেস", type: "STUDENT_MALE", area: "Dhanmondi", city: "Dhaka", lat: 23.7461, lng: 90.3742, rent: 4500, phone: "01711000001", rooms: 6, perRoom: 3, photoIdx: 0, amenities: ["wifi","filteredWater","generator","security","cctv","kitchen","geyser","rooftop"], desc: "ধানমন্ডি ২৭ নং এ অবস্থিত ছাত্রদের জন্য সাশ্রয়ী মেস। সব সুযোগ-সুবিধা সহ পরিচ্ছন্ন পরিবেশ।" },
-    { user: owner2, name: "বসুন্ধরা প্রফেশনাল হোস্টেল", type: "PROFESSIONAL", area: "Bashundhara", city: "Dhaka", lat: 23.8133, lng: 90.4254, rent: 7000, phone: "01711000002", rooms: 8, perRoom: 2, photoIdx: 1, amenities: ["wifi","filteredWater","lift","parking","cctv","washingMachine","geyser","kitchen","dining"], desc: "বসুন্ধরা আর/এ তে চাকরিজীবীদের জন্য আধুনিক হোস্টেল। নর্থ সাউথ বিশ্ববিদ্যালয় নিকটবর্তী।" },
-    { user: owner3, name: "নীলক্ষেত ছাত্রী মেস", type: "STUDENT_FEMALE", area: "Mohakhali", city: "Dhaka", lat: 23.7788, lng: 90.4012, rent: 5000, phone: "01711000003", rooms: 5, perRoom: 3, photoIdx: 2, amenities: ["wifi","filteredWater","security","cctv","geyser","washingMachine","kitchen","dining","rooftop"], desc: "মহাখালীতে ছাত্রীদের জন্য নিরাপদ ও পরিচ্ছন্ন মেস। মহিলা ওয়ার্ডেন সহ।" },
-    { user: owner1, name: "মিরপুর স্টুডেন্ট রেসিডেন্স", type: "STUDENT_MALE", area: "Mirpur", city: "Dhaka", lat: 23.8068, lng: 90.3686, rent: 4000, phone: "01711000011", rooms: 5, perRoom: 4, photoIdx: 3, amenities: ["wifi","filteredWater","generator","kitchen","geyser"], desc: "মিরপুর ১০ এ সাশ্রয়ী মেস। বাসস্টপ ও মার্কেট নিকটে।" },
-    { user: owner2, name: "উত্তরা প্রিমিয়াম হোস্টেল", type: "PROFESSIONAL", area: "Uttara", city: "Dhaka", lat: 23.8728, lng: 90.3984, rent: 8000, phone: "01711000012", rooms: 7, perRoom: 2, photoIdx: 4, amenities: ["wifi","filteredWater","lift","parking","cctv","security","washingMachine","geyser","kitchen","dining"], desc: "উত্তরা সেক্টর ৭ এ প্রিমিয়াম হোস্টেল। এসি অপশন সহ।" },
-    { user: owner3, name: "মোহাম্মদপুর মিক্সড মেস", type: "MIXED", area: "Mohammadpur", city: "Dhaka", lat: 23.7657, lng: 90.3612, rent: 5500, phone: "01711000013", rooms: 6, perRoom: 3, photoIdx: 0, amenities: ["wifi","filteredWater","generator","cctv","kitchen","geyser","parking"], desc: "মোহাম্মদপুরে ফ্লোর ভিত্তিক মিক্সড মেস।" },
-    { user: owner1, name: "ফার্মগেট স্কলার্স মেস", type: "STUDENT_MALE", area: "Farmgate", city: "Dhaka", lat: 23.7549, lng: 90.3913, rent: 4800, phone: "01711000014", rooms: 4, perRoom: 3, photoIdx: 1, amenities: ["wifi","filteredWater","generator","security","kitchen","geyser","rooftop"], desc: "ফার্মগেটে ঢাকা কলেজ ও বিশ্ববিদ্যালয় শিক্ষার্থীদের জন্য।" },
-    { user: owner2, name: "পান্থপথ সিটি হোস্টেল", type: "PROFESSIONAL", area: "Panthapath", city: "Dhaka", lat: 23.7509, lng: 90.3843, rent: 6500, phone: "01711000015", rooms: 6, perRoom: 2, photoIdx: 2, amenities: ["wifi","filteredWater","lift","parking","cctv","washingMachine","geyser","dining"], desc: "পান্থপথে বসুন্ধরা সিটির পাশে আধুনিক হোস্টেল।" },
+    { user: owner1, name: "এম এস স্টুডেন্টস মেস", type: "STUDENT_MALE", area: "Kazla", city: "Rajshahi", lat: 24.3660, lng: 88.6272, rent: 2000, phone: "01711000001", rooms: 6, perRoom: 3, photoIdx: 0, amenities: ["wifi","filteredWater","generator","security","cctv","kitchen","geyser","rooftop"], desc: "কাজলা বাজারের পাশে, রাজশাহী বিশ্ববিদ্যালয় মূল ফটক থেকে ৫ মিনিট হাঁটা দূরত্বে অবস্থিত। ছাত্রদের জন্য সাশ্রয়ী ও পরিচ্ছন্ন মেস।" },
+    { user: owner2, name: "শুভ ছাত্রাবাস", type: "STUDENT_MALE", area: "Motihar", city: "Rajshahi", lat: 24.3700, lng: 88.6200, rent: 1500, phone: "01711000002", rooms: 8, perRoom: 4, photoIdx: 1, amenities: ["wifi","filteredWater","generator","kitchen","geyser","parking"], desc: "মতিহারে রুয়েট ও রাবি শিক্ষার্থীদের জন্য বাজেট-ফ্রেন্ডলি মেস। ৩ ও ৪ সিটের রুম উপলব্ধ।" },
+    { user: owner3, name: "সেলিনা লেডিস হোস্টেল", type: "STUDENT_FEMALE", area: "Binodpur", city: "Rajshahi", lat: 24.3580, lng: 88.6285, rent: 2500, phone: "01711000003", rooms: 5, perRoom: 3, photoIdx: 2, amenities: ["wifi","filteredWater","security","cctv","geyser","washingMachine","kitchen","dining","rooftop"], desc: "বিনোদপুর আমাজাদের মোড়ে ছাত্রীদের জন্য নিরাপদ হোস্টেল। মহিলা ওয়ার্ডেন ও ২৪/৭ সিকিউরিটি সহ।" },
+    { user: owner1, name: "শিমলা ছাত্রাবাস", type: "STUDENT_MALE", area: "Baharampur", city: "Rajshahi", lat: 24.3400, lng: 88.6400, rent: 1600, phone: "01711000011", rooms: 7, perRoom: 3, photoIdx: 3, amenities: ["wifi","filteredWater","generator","kitchen","geyser"], desc: "বহরমপুর সিটি বাইপাসের পাশে সাশ্রয়ী ছাত্রাবাস। সিটি বাস স্টপ নিকটে।" },
+    { user: owner2, name: "এস এন পার্ক ছাত্রীনিবাস", type: "STUDENT_FEMALE", area: "Baharampur", city: "Rajshahi", lat: 24.3420, lng: 88.6410, rent: 3000, phone: "01711000012", rooms: 6, perRoom: 2, photoIdx: 4, amenities: ["wifi","filteredWater","lift","parking","cctv","security","washingMachine","geyser","kitchen","dining"], desc: "বহরমপুরে ৮ তলা ভবন, লিফট সুবিধা সহ ছাত্রী ও কর্মজীবী মহিলাদের জন্য আধুনিক হোস্টেল।" },
+    { user: owner3, name: "রোকেয়া ছাত্রাবাস", type: "STUDENT_FEMALE", area: "Kazla", city: "Rajshahi", lat: 24.3645, lng: 88.6260, rent: 1800, phone: "01711000013", rooms: 5, perRoom: 3, photoIdx: 0, amenities: ["wifi","filteredWater","generator","cctv","kitchen","geyser","parking"], desc: "কাজলা কে.ডি. ক্লাবের পাশে ছাত্রীদের জন্য সাশ্রয়ী মেস। রাবি ক্যাম্পাস থেকে ৮ মিনিট দূরে।" },
+    { user: owner1, name: "আইসিটি প্রাইভেট মেস", type: "STUDENT_MALE", area: "Talaimari", city: "Rajshahi", lat: 24.3500, lng: 88.6350, rent: 1500, phone: "01711000014", rooms: 4, perRoom: 4, photoIdx: 1, amenities: ["wifi","filteredWater","generator","kitchen","geyser","rooftop"], desc: "তালাইমারিতে রাবি ও রুয়েট শিক্ষার্থীদের জন্য বাজেট-ফ্রেন্ডলি মেস। শান্ত পরিবেশ।" },
+    { user: owner2, name: "পদ্মা রেসিডেনশিয়াল মেস", type: "PROFESSIONAL", area: "Padma Residential", city: "Rajshahi", lat: 24.3450, lng: 88.6550, rent: 4000, phone: "01711000015", rooms: 6, perRoom: 2, photoIdx: 2, amenities: ["wifi","filteredWater","lift","parking","cctv","washingMachine","geyser","kitchen","dining"], desc: "পদ্মা রেসিডেনশিয়াল এরিয়ায় চাকরিজীবীদের জন্য আধুনিক মেস। পদ্মা নদীর কাছে মনোরম পরিবেশ।" },
   ];
 
   let messCounter = 0;

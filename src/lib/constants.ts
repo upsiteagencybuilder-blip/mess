@@ -42,19 +42,20 @@ export function messTypeLabel(type: string): string {
   return MESS_TYPES.find((t) => t.value === type)?.label ?? type;
 }
 
-// Bangladesh areas with coordinates (Dhaka-focused for realistic messes)
+// Bangladesh areas with coordinates — focused on Rajshahi University surroundings
 export const BANGLADESH_AREAS = [
-  { area: "Dhanmondi", city: "Dhaka", lat: 23.7461, lng: 90.3742 },
-  { area: "Mohakhali", city: "Dhaka", lat: 23.7788, lng: 90.4012 },
-  { area: "Bashundhara", city: "Dhaka", lat: 23.8133, lng: 90.4254 },
-  { area: "Mirpur", city: "Dhaka", lat: 23.8068, lng: 90.3686 },
-  { area: "Uttara", city: "Dhaka", lat: 23.8728, lng: 90.3984 },
-  { area: "Mohammadpur", city: "Dhaka", lat: 23.7657, lng: 90.3612 },
-  { area: "Farmgate", city: "Dhaka", lat: 23.7549, lng: 90.3913 },
-  { area: "Panthapath", city: "Dhaka", lat: 23.7509, lng: 90.3843 },
-  { area: "Chittagong", city: "Chittagong", lat: 22.3569, lng: 91.7832 },
-  { area: "Sylhet", city: "Sylhet", lat: 24.8949, lng: 91.8687 },
+  { area: "Kazla", city: "Rajshahi", lat: 24.3660, lng: 88.6272 },
+  { area: "Motihar", city: "Rajshahi", lat: 24.3700, lng: 88.6200 },
+  { area: "Binodpur", city: "Rajshahi", lat: 24.3580, lng: 88.6285 },
+  { area: "Talaimari", city: "Rajshahi", lat: 24.3500, lng: 88.6350 },
+  { area: "Baharampur", city: "Rajshahi", lat: 24.3400, lng: 88.6400 },
+  { area: "Alupotti", city: "Rajshahi", lat: 24.3640, lng: 88.6180 },
+  { area: "Shalbagan", city: "Rajshahi", lat: 24.3740, lng: 88.6100 },
+  { area: "Padma Residential", city: "Rajshahi", lat: 24.3450, lng: 88.6550 },
 ];
+
+// Rajshahi University center coordinate (for globe focus)
+export const RAJSHAHI_UNIVERSITY = { lat: 24.3636, lng: 88.6241, name: "Rajshahi University" };
 
 export function formatBDT(amount: number): string {
   return "৳" + amount.toLocaleString("en-BD");
