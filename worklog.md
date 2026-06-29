@@ -412,3 +412,47 @@ Stage Summary:
 - Full-page detail includes everything: photo gallery, stats, description, amenities, room/seat map, contact, prev/next navigation, and a 3-step booking flow (form → preview → success).
 - Booking requires login: logged-out users see login/register CTA; logged-in users see the form. After login from the detail page, user stays on the same page to complete booking (not redirected to dashboard).
 - Realistic flow: search → filter → pin click → compact preview → full details → login → book → success. All verified working.
+
+---
+Task ID: 13
+Agent: main (orchestrator)
+Task: Fix wrong Rajshahi University center + all area coordinates; build LocationPicker for owners to set/fix exact mess locations
+
+Work Log:
+- Used OpenStreetMap Nominatim geocoding API to verify EXACT coordinates:
+  * Rajshahi University: lat=24.3714, lng=88.6422 (was 24.3636, 88.6241 — WRONG, that's near RUET not RU)
+  * Kazla: 24.3627, 88.6333 (was 24.3660, 88.6272)
+  * Motihar: 24.3700, 88.6373 (was 24.3700, 88.6200 — lng was off by 0.017°)
+  * Binodpur: 24.3676, 88.6437 (was 24.3580, 88.6285)
+  * Talaimari: 24.3617, 88.6269 (was 24.3500, 88.6350)
+  * Baharampur: 24.3800, 88.5857 (was 24.3400, 88.6400 — was 5km off!)
+  * Alupotti, Shalbagan, Padma Residential also corrected
+- Updated constants.ts (BANGLADESH_AREAS + RAJSHAHI_UNIVERSITY), geo.ts (DEFAULT_CENTER), mess-filter-store.ts (refPoint default), MessGlobe.tsx (HUB_CENTER).
+- Updated prisma/seed.ts: all 8 messes now have accurate coordinates near their respective areas.
+- Re-seeded database with corrected data.
+- Built LocationPicker component (src/components/mess/LocationPicker.tsx wrapper + LocationPickerInner.tsx):
+  * Interactive Leaflet map with draggable pin
+  * Click anywhere on map to set exact location
+  * Address search via Nominatim OpenStreetMap geocoding (free, no API key) — type "Kazla" or "রাজশাহী বিশ্ববিদ্যালয়" and get autocomplete results
+  * "আমার অবস্থান" button using browser geolocation API
+  * Live Lat/Lng coordinate display (6 decimal places)
+  * Wrapped with next/dynamic ssr:false to avoid Leaflet window crash
+- Integrated LocationPicker into RegisterMessForm: owners set exact location when creating a new mess (after selecting area, they fine-tune the pin on the map)
+- Integrated LocationPicker into SettingsTab: owners can FIX a wrong location on the live site — open Settings → scroll to location picker → click/drag pin to correct spot → Save → PUT /api/mess/[id] updates lat/lng in database
+- Added lat/lng to SettingsTab form state and PUT request body (PUT route already accepted lat/lng)
+- Verified end-to-end with Agent Browser:
+  * Landing map: 8 pins correctly clustered around RU campus (not 5km away) ✓
+  * Owner Settings tab: LocationPicker renders with map, search, coords display ✓
+  * Map click updates coordinates (24.362200 → 24.363302) ✓
+  * Address search returns Nominatim results (5 results for "Kazla") ✓
+  * Save button → PUT /api/mess/[id] 200 → "সেটিংস সংরক্ষিত" toast ✓
+  * Location persists in database after save ✓
+- bun run lint → 0 errors, 0 warnings
+
+Stage Summary:
+- Fixed the root cause: all coordinates were wrong (especially RU center was at RUET, Baharampur was 5km off). Now verified via OpenStreetMap Nominatim.
+- Built a production-ready LocationPicker that solves BOTH scenarios:
+  1. NEW mess creation: owner picks exact location on map (click/drag/search/geolocation)
+  2. LIVE site fix: owner opens Settings → adjusts pin → saves → database updates
+- Nominatim geocoding (free OpenStreetMap service) powers address search — no API key needed, realistic for a real project.
+- Full flow verified: owner login → Settings → fix location → save → persists. Map shows corrected positions.

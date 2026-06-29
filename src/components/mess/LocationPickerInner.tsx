@@ -35,7 +35,6 @@ const PICKER_CSS = `
   }
 `;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
 function buildPinIcon(): L.DivIcon {
@@ -107,7 +106,6 @@ export default function LocationPicker({
       mapRef.current = null;
       markerRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update marker when value changes externally
