@@ -25,6 +25,7 @@ export default function Home() {
   const view = useAppStore((s) => s.view);
   const setView = useAppStore((s) => s.setView);
   const setAuthOpen = useAppStore((s) => s.setAuthOpen);
+  const selectedMessId = useAppStore((s) => s.selectedMessId);
 
   const [bootstrapped, setBootstrapped] = useState(false);
   const [messes, setMesses] = useState<MessListItem[]>([]);
@@ -44,7 +45,11 @@ export default function Home() {
           }
         }
       } catch {
-        // not logged in — stay on landing
+        // Session invalid/expired — clear any stale persisted user & reset to landing
+        if (!cancelled) {
+          setUser(null);
+          setView("landing");
+        }
       } finally {
         if (!cancelled) setBootstrapped(true);
       }
@@ -68,18 +73,22 @@ export default function Home() {
     loadMesses();
   }, [loadMesses]);
 
-  // Bounce to landing if a dashboard view is active but user is not logged in
-  // (mess-detail is public — no login required to view)
+  // Bounce to landing if a dashboard view is active but user is not logged in,
+  // or if mess-detail is active but no mess is selected (stale state)
   useEffect(() => {
+    if (!bootstrapped) return;
     const isDashboard =
       view === "owner-dashboard" ||
       view === "tenant-dashboard" ||
       view === "staff-dashboard";
-    if (bootstrapped && isDashboard && !user) {
+    if (isDashboard && !user) {
       setView("landing");
       setAuthOpen(true, "login");
     }
-  }, [bootstrapped, view, user, setView, setAuthOpen]);
+    if (view === "mess-detail" && !selectedMessId) {
+      setView("landing");
+    }
+  }, [bootstrapped, view, user, selectedMessId, setView, setAuthOpen]);
 
   // Loading splash
   if (!bootstrapped) {
