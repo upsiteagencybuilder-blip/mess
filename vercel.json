@@ -1,0 +1,8 @@
+{
+  "buildCommand": "bash scripts/vercel-build.sh && next build",
+  "framework": "nextjs",
+  "regions": ["sin1"],
+  "env": {
+    "SESSION_SECRET": "@session-secret"
+  }
+}

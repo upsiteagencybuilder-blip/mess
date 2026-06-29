@@ -1,13 +1,13 @@
-// Mess Management & Seat Finder Platform schema
-// Local dev: SQLite (provider = "sqlite")
-// Production (Vercel): PostgreSQL — the vercel-build script swaps this automatically.
+// Production schema for Vercel (PostgreSQL)
+// This file is automatically used during Vercel builds.
+// The vercel-build script swaps this into prisma/schema.prisma before building.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,7 +17,7 @@ model User {
   password  String
   name      String
   phone     String?
-  role      String   @default("TENANT") // TENANT | OWNER | STAFF | ADMIN
+  role      String   @default("TENANT")
   avatar    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -43,8 +43,8 @@ model Mess {
   lng           Float
   rentPerSeat   Int
   contactNumber String
-  photos        String   // JSON array of image URLs
-  amenities     String   // JSON array of amenity keys
+  photos        String
+  amenities     String
   totalRooms    Int      @default(0)
   totalSeats    Int      @default(0)
   vacantSeats   Int      @default(0)

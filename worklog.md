@@ -610,3 +610,51 @@ Work Log:
 Stage Summary:
 - "Unauthorized" error fixed: cookie `sameSite: "none"` + `secure: true` enables cross-site iframe session. Automatic 401 recovery reloads to landing instead of showing error.
 - Session now persists correctly in the preview panel iframe.
+
+---
+Task ID: 19
+Agent: main (orchestrator)
+Task: Production-ready for Vercel deployment
+
+Work Log:
+- Created dual-schema system for SQLite (local) + PostgreSQL (production):
+  * prisma/schema.prisma — SQLite for local dev (existing, unchanged)
+  * prisma/schema.prod.prisma — PostgreSQL for Vercel production
+- Created scripts/vercel-build.sh — Vercel build preparation script:
+  1. Backs up current SQLite schema
+  2. Swaps to PostgreSQL schema
+  3. Runs `prisma generate` (generates PostgreSQL client)
+  4. If DATABASE_URL is PostgreSQL: runs `prisma db push` (creates tables) + optional seed
+  5. Restores SQLite schema for git cleanliness
+- Updated package.json:
+  * `build` script now runs `bash scripts/vercel-build.sh && next build`
+  * Added `postinstall: prisma generate` (Vercel needs this to generate client)
+  * Added `seed` script
+  * Removed `standalone` build (Vercel handles this)
+  * Updated `start` to `next start` (Vercel standard)
+- Updated next.config.ts: removed `output: "standalone"`, added image remotePatterns for Unsplash
+- Created vercel.json with build command + framework config
+- Updated .env with SESSION_SECRET for production
+- Created .env.example with PostgreSQL URL template + instructions
+- Updated .gitignore: added /db/ (SQLite), added !.env.example exception
+- Added tsx as dev dependency (for seed script on Vercel)
+- Created DEPLOYMENT.md — comprehensive step-by-step deployment guide:
+  * Step 1: Create PostgreSQL database (Neon/Vercel Postgres/Supabase)
+  * Step 2: Push code to GitHub
+  * Step 3: Deploy on Vercel (with env vars table)
+  * Step 4: Verify deployment
+  * Step 5: Custom domain (optional)
+  * Demo accounts + production tips + architecture overview
+- Fixed bug in vercel-build.sh: was backing up wrong file (prod schema instead of dev schema)
+- Verified:
+  * vercel-build.sh runs correctly locally (swaps → generates → skips db push → restores) ✓
+  * SQLite schema properly restored after script run ✓
+  * Local dev server still works (8 pins, page loads) ✓
+  * bun run lint → 0 errors ✓
+
+Stage Summary:
+- Project is production-ready for Vercel deployment.
+- Dual-schema system: SQLite for local dev (no setup needed), PostgreSQL for production (Vercel).
+- vercel-build.sh automatically handles schema swap + prisma generate + db push + seed.
+- DEPLOYMENT.md has complete step-by-step instructions.
+- User needs to: 1) Create free Neon PostgreSQL, 2) Push to GitHub, 3) Import to Vercel with env vars, 4) Deploy.
