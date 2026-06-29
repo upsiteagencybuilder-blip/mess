@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import LandingHero from "@/components/mess/LandingHero";
 import MessList from "@/components/mess/MessList";
+import MapExplore from "@/components/mess/MapExplore";
 import MessDetailDialog from "@/components/mess/MessDetailDialog";
 import AuthDialog from "@/components/mess/AuthDialog";
 import ProfileDialog from "@/components/mess/ProfileDialog";
@@ -143,6 +144,7 @@ export default function Home() {
           <MessList messes={messes} onSelect={handleSelectMess} />
         </section>
       )}
+      {landingTab === "map" && <MapExplore messes={messes} />}
       <Footer />
       <MessDetailDialog />
       <AuthDialog />

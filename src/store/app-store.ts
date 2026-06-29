@@ -21,8 +21,8 @@ interface AppState {
   setUser: (u: SessionUser | null) => void;
   view: ViewMode;
   setView: (v: ViewMode) => void;
-  landingTab: "explore" | "list";
-  setLandingTab: (t: "explore" | "list") => void;
+  landingTab: "explore" | "list" | "map";
+  setLandingTab: (t: "explore" | "list" | "map") => void;
   selectedMessId: string | null;
   setSelectedMessId: (id: string | null) => void;
   authOpen: boolean;

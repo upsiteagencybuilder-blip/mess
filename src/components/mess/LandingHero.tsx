@@ -81,20 +81,28 @@ export default function LandingHero({ messes }: LandingHeroProps) {
           <div className="pointer-events-auto flex items-center gap-2 sm:gap-3">
             <Tabs
               value={landingTab}
-              onValueChange={(v) => setLandingTab(v as "explore" | "list")}
+              onValueChange={(v) =>
+                setLandingTab(v as "explore" | "list" | "map")
+              }
             >
               <TabsList className="h-9 border border-white/10 bg-white/5 backdrop-blur-sm">
                 <TabsTrigger
                   value="explore"
                   className="data-[state=active]:bg-teal-500/20 data-[state=active]:text-teal-200 data-[state=active]:shadow-none text-slate-300 text-xs sm:text-sm"
                 >
-                  এক্সপ্লোর করুন
+                  এক্সপ্লোর
+                </TabsTrigger>
+                <TabsTrigger
+                  value="map"
+                  className="data-[state=active]:bg-teal-500/20 data-[state=active]:text-teal-200 data-[state=active]:shadow-none text-slate-300 text-xs sm:text-sm"
+                >
+                  ম্যাপ
                 </TabsTrigger>
                 <TabsTrigger
                   value="list"
                   className="data-[state=active]:bg-teal-500/20 data-[state=active]:text-teal-200 data-[state=active]:shadow-none text-slate-300 text-xs sm:text-sm"
                 >
-                  তালিকা দেখুন
+                  তালিকা
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -206,6 +214,7 @@ export default function LandingHero({ messes }: LandingHeroProps) {
             activeType={type}
             selectedArea={selectedArea}
             onSelectArea={setSelectedArea}
+            onViewMap={() => setLandingTab("map")}
           />
         </motion.div>
       </div>
@@ -230,6 +239,7 @@ interface HeroSearchBarProps {
   activeType: string | null;
   selectedArea: string | null;
   onSelectArea: (a: string | null) => void;
+  onViewMap: () => void;
 }
 
 function HeroSearchBar({
@@ -238,6 +248,7 @@ function HeroSearchBar({
   activeType,
   selectedArea,
   onSelectArea,
+  onViewMap,
 }: HeroSearchBarProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -278,6 +289,7 @@ function HeroSearchBar({
     setOpen(false);
     onSearchChange(area);
     onSelectArea(area);
+    onViewMap();
   };
 
   const clearAll = () => {
@@ -305,7 +317,18 @@ function HeroSearchBar({
                 value={query}
                 onChange={(e) => handleInputChange(e.target.value)}
                 onFocus={() => setOpen(true)}
-                placeholder="এলাকা / মেসের নাম লিখুন (যেমন Dhanmondi)"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    setOpen(false);
+                    if (suggestions.length > 0) {
+                      pickArea(suggestions[0].area);
+                    } else {
+                      onViewMap();
+                    }
+                  }
+                }}
+                placeholder="এলাকা / মেসের নাম লিখুন (যেমন Kazla)"
                 className="h-9 w-full min-w-0 bg-transparent text-sm text-white placeholder:text-slate-400 outline-none sm:text-base"
                 aria-label="মেস খুঁজুন"
               />

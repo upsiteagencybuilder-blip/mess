@@ -269,3 +269,48 @@ Stage Summary:
 - 8 real messes across Kazla/Motihar/Binodpur/Talaimari/Baharampur/Padma Residential with realistic rents ৳1,500–৳4,000.
 - Globe now centers on RU and draws connection arcs from the university to each mess.
 - All demo accounts (rahim/karim/salma@mess.com, tanvir@tenant.com, staff@mess.com / 123456) working with Rajshahi data.
+
+---
+Task ID: 9
+Agent: main (orchestrator)
+Task: Build realistic interactive map search — area search → map with rent+distance pins → click pin → mess detail below
+
+Work Log:
+- Installed leaflet@1.9.4 + @types/leaflet for real OpenStreetMap-based interactive maps.
+- Created src/lib/geo.ts: haversineKm() distance calculation, formatDistance() (Bengali: মিটার/কিমি), DEFAULT_CENTER (Rajshahi University).
+- Added "map" option to landingTab in Zustand store (explore | list | map).
+- Built src/components/mess/ExploreMap.tsx — Leaflet interactive map:
+  * OpenStreetMap tiles (real streets, roads, neighborhoods)
+  * Custom teal pin markers for each mess showing rent (৳) + distance (কিমি/মিটার) from center
+  * Central pulsing marker (user's selected location, defaults to Rajshahi University)
+  * Distance rings: 1km, 2km, 5km circles around center
+  * Area search bar overlay with autocomplete (BANGLADESH_AREAS)
+  * "আমার অবস্থান" button using browser geolocation API
+  * Hover tooltips showing mess name + rent + distance + vacant seats
+  * Click pin → onSelectMess callback → flies map to that mess
+  * Info badge (X টি মেস) + distance ring legend
+- Built src/components/mess/MapExplore.tsx — full map explore section:
+  * ExploreMap on top (520-560px height, rounded bordered container)
+  * NearbyList: when no mess selected, shows all messes sorted by distance (numbered, with area + distance + rent)
+  * SelectedMessDetail: when a pin is clicked, animates in below the map with:
+    - Photo, type badge, mess code
+    - 4 stat tiles: rent, distance, vacant seats, rooms
+    - Description, amenities chips (with icons)
+    - Contact (tel: link + copy button), booking request button
+    - Room/seat map (occupied=teal filled, vacant=dashed outline)
+- Updated page.tsx: renders MapExplore when landingTab === 'map'.
+- Updated LandingHero: added "ম্যাপ" tab; search bar now triggers map view on Enter or area selection (onViewMap callback → setLandingTab('map')).
+- Fixed bugs: styled-jsx not supported → used dangerouslySetInnerHTML with CSS string; AmenityIcon export mismatch → getAmenityIcon; unused eslint-disable directives removed.
+- Verified end-to-end with Agent Browser:
+  * Landing → click "ম্যাপ" tab → interactive OpenStreetMap renders with 8 teal pins ✓
+  * Pins show rent (৳1,500, ৳2,000) + distance (824 মিটার, 217 মিটার) ✓
+  * Search "Kazla" in map search bar → map flies to Kazla, re-centers, redraws distance rings ✓
+  * Click a pin → detail panel animates in below with full mess info (name, rent, distance, vacant seats, amenities, contact, room/seat map, booking button) ✓
+  * Hero search "Kazla" + Enter → switches to map view automatically ✓
+- bun run lint → 0 errors, 0 warnings
+
+Stage Summary:
+- Realistic interactive map search experience complete: user searches an area → OpenStreetMap shows all nearby messes as pins with rent + distance labels → click a pin → full mess detail appears below with room/seat map, amenities, contact, and booking option.
+- Distance calculated via haversine formula (real km/m from selected location). Map shows real Rajshahi streets (Kazla, Motihar, Binodpur) with 1/2/5km distance rings.
+- Geolocation support ("আমার অবস্থান") for real-world location detection.
+- Three landing modes: এক্সপ্লোর (3D globe), ম্যাপ (interactive OSM map), তালিকা (grid list).
