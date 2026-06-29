@@ -2,15 +2,12 @@
 
 import { create } from "zustand";
 
-/**
- * Ephemeral (non-persisted) filter state shared between the landing hero
- * search bar, the MessList filter UI, and the page orchestrator that
- * actually filters the mess list before passing it down as props.
- *
- * The selected *area* is kept in the main app-store (`selectedArea`) so the
- * 3D globe can react to it; everything else (text search, type, rent range,
- * amenities, vacancy toggle) lives here.
- */
+export interface RefPoint {
+  lat: number;
+  lng: number;
+  label: string;
+}
+
 interface MessFilterState {
   search: string;
   setSearch: (s: string) => void;
@@ -28,6 +25,12 @@ interface MessFilterState {
 
   onlyVacant: boolean;
   setOnlyVacant: (v: boolean) => void;
+
+  refPoint: RefPoint;
+  setRefPoint: (p: RefPoint) => void;
+
+  maxDistance: number | null;
+  setMaxDistance: (d: number | null) => void;
 
   reset: () => void;
 }
@@ -50,6 +53,10 @@ export const useMessFilter = create<MessFilterState>((set) => ({
   clearAmenities: () => set({ amenities: [] }),
   onlyVacant: false,
   setOnlyVacant: (v) => set({ onlyVacant: v }),
+  refPoint: { lat: 24.3636, lng: 88.6241, label: "রাজশাহী বিশ্ববিদ্যালয়" },
+  setRefPoint: (p) => set({ refPoint: p }),
+  maxDistance: null,
+  setMaxDistance: (d) => set({ maxDistance: d }),
   reset: () =>
     set({
       search: "",
@@ -58,40 +65,9 @@ export const useMessFilter = create<MessFilterState>((set) => ({
       maxRent: null,
       amenities: [],
       onlyVacant: false,
+      maxDistance: null,
     }),
 }));
-
-/** Apply the current filter state + selectedArea to a list of messes. */
-export function filterMesses(
-  list: MessListFilterable[],
-  opts: {
-    search: string;
-    type: string | null;
-    minRent: number | null;
-    maxRent: number | null;
-    amenities: string[];
-    onlyVacant: boolean;
-    selectedArea: string | null;
-  }
-): MessListFilterable[] {
-  const q = opts.search.trim().toLowerCase();
-  return list.filter((m) => {
-    if (opts.selectedArea && m.area !== opts.selectedArea) return false;
-    if (opts.type && m.type !== opts.type) return false;
-    if (opts.onlyVacant && m.vacantSeats <= 0) return false;
-    if (opts.minRent != null && m.rentPerSeat < opts.minRent) return false;
-    if (opts.maxRent != null && m.rentPerSeat > opts.maxRent) return false;
-    if (opts.amenities.length > 0) {
-      const ok = opts.amenities.every((a) => m.amenities.includes(a));
-      if (!ok) return false;
-    }
-    if (q) {
-      const hay = `${m.name} ${m.area} ${m.city} ${m.code} ${m.type}`.toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
-  });
-}
 
 export interface MessListFilterable {
   id: string;
@@ -103,4 +79,55 @@ export interface MessListFilterable {
   rentPerSeat: number;
   amenities: string[];
   vacantSeats: number;
+  lat: number;
+  lng: number;
+}
+
+export function filterMesses(
+  list: MessListFilterable[],
+  opts: {
+    search: string;
+    type: string | null;
+    minRent: number | null;
+    maxRent: number | null;
+    amenities: string[];
+    onlyVacant: boolean;
+    refPoint: RefPoint;
+    maxDistance: number | null;
+  }
+): MessListFilterable[] {
+  const q = opts.search.trim().toLowerCase();
+  return list.filter((m) => {
+    if (opts.type && m.type !== opts.type) return false;
+    if (opts.onlyVacant && m.vacantSeats <= 0) return false;
+    if (opts.minRent != null && m.rentPerSeat < opts.minRent) return false;
+    if (opts.maxRent != null && m.rentPerSeat > opts.maxRent) return false;
+    if (opts.amenities.length > 0) {
+      const ok = opts.amenities.every((a) => m.amenities.includes(a));
+      if (!ok) return false;
+    }
+    if (opts.maxDistance != null) {
+      const d = haversineKm(opts.refPoint.lat, opts.refPoint.lng, m.lat, m.lng);
+      if (d > opts.maxDistance) return false;
+    }
+    if (q) {
+      const hay = `${m.name} ${m.area} ${m.city} ${m.code} ${m.type}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }

@@ -1,26 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { MapPin, Navigation } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { BANGLADESH_AREAS, RAJSHAHI_UNIVERSITY, formatBDT } from "@/lib/constants";
+import { MapPin } from "lucide-react";
+import { formatBDT } from "@/lib/constants";
 import { haversineKm, formatDistance } from "@/lib/geo";
 import type { MessListItem } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
+
+interface RefPoint {
+  lat: number;
+  lng: number;
+  label: string;
+}
 
 interface ExploreMapProps {
   messes: MessListItem[];
   selectedMessId: string | null;
   onSelectMess: (id: string) => void;
+  refPoint: RefPoint;
+  maxDistance: number | null;
   className?: string;
-}
-
-interface MapCenter {
-  lat: number;
-  lng: number;
-  label: string;
 }
 
 const PIN_CSS = [
@@ -40,7 +41,6 @@ const PIN_CSS = [
   ".leaflet-tooltip-top:before { border-top-color: #14b8a6 !important; }",
 ].join("\n");
 
-// Fix Leaflet default marker icon paths (prevents 404s).
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -84,27 +84,26 @@ function buildCenterIcon(label: string): L.DivIcon {
   });
 }
 
-export default function ExploreMap({ messes, selectedMessId, onSelectMess, className }: ExploreMapProps) {
+export default function ExploreMap({
+  messes,
+  selectedMessId,
+  onSelectMess,
+  refPoint,
+  maxDistance,
+  className,
+}: ExploreMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const centerMarkerRef = useRef<L.Marker | null>(null);
   const circlesRef = useRef<L.Circle[]>([]);
 
-  const [center, setCenter] = useState<MapCenter>({
-    lat: RAJSHAHI_UNIVERSITY.lat,
-    lng: RAJSHAHI_UNIVERSITY.lng,
-    label: "রাজশাহী বিশ্ববিদ্যালয়",
-  });
-  const [query, setQuery] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
-
   // Initialize map once
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
     const map = L.map(containerRef.current, {
-      center: [center.lat, center.lng],
+      center: [refPoint.lat, refPoint.lng],
       zoom: 14,
       zoomControl: true,
       scrollWheelZoom: true,
@@ -116,28 +115,6 @@ export default function ExploreMap({ messes, selectedMessId, onSelectMess, class
     }).addTo(map);
 
     mapRef.current = map;
-
-    // Center marker
-    centerMarkerRef.current = L.marker([center.lat, center.lng], {
-      icon: buildCenterIcon(center.label),
-      interactive: false,
-      zIndexOffset: 500,
-    }).addTo(map);
-
-    // Distance rings
-    [1, 2, 5].forEach((km) => {
-      const c = L.circle([center.lat, center.lng], {
-        radius: km * 1000,
-        color: "#14b8a6",
-        weight: 1,
-        opacity: 0.3,
-        fillColor: "#14b8a6",
-        fillOpacity: 0.03,
-        dashArray: "4 6",
-      }).addTo(map);
-      circlesRef.current.push(c);
-    });
-
     setTimeout(() => map.invalidateSize(), 200);
 
     return () => {
@@ -149,6 +126,54 @@ export default function ExploreMap({ messes, selectedMessId, onSelectMess, class
     };
   }, []);
 
+  // Update center marker + radius ring when refPoint or maxDistance changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    // Update center marker
+    if (centerMarkerRef.current) {
+      centerMarkerRef.current.remove();
+    }
+    centerMarkerRef.current = L.marker([refPoint.lat, refPoint.lng], {
+      icon: buildCenterIcon(refPoint.label),
+      interactive: false,
+      zIndexOffset: 500,
+    }).addTo(map);
+
+    // Remove old rings
+    circlesRef.current.forEach((c) => c.remove());
+    circlesRef.current = [];
+
+    // Draw rings: if maxDistance set, draw that; also always draw 1/2/5km reference rings
+    if (maxDistance !== null) {
+      const c = L.circle([refPoint.lat, refPoint.lng], {
+        radius: maxDistance * 1000,
+        color: "#0d9488",
+        weight: 2,
+        opacity: 0.6,
+        fillColor: "#14b8a6",
+        fillOpacity: 0.08,
+      }).addTo(map);
+      circlesRef.current.push(c);
+    }
+    // Reference rings (lighter)
+    [1, 2, 5].forEach((km) => {
+      const c = L.circle([refPoint.lat, refPoint.lng], {
+        radius: km * 1000,
+        color: "#14b8a6",
+        weight: 1,
+        opacity: 0.2,
+        fillColor: "#14b8a6",
+        fillOpacity: 0.02,
+        dashArray: "4 6",
+      }).addTo(map);
+      circlesRef.current.push(c);
+    });
+
+    map.flyTo([refPoint.lat, refPoint.lng], maxDistance ? 13 : 14, { duration: 0.6 });
+  }, [refPoint, maxDistance]);
+
   // Update mess markers
   useEffect(() => {
     const map = mapRef.current;
@@ -158,7 +183,7 @@ export default function ExploreMap({ messes, selectedMessId, onSelectMess, class
     markersRef.current.clear();
 
     messes.forEach((mess) => {
-      const distance = haversineKm(center.lat, center.lng, mess.lat, mess.lng);
+      const distance = haversineKm(refPoint.lat, refPoint.lng, mess.lat, mess.lng);
       const isSelected = mess.id === selectedMessId;
       const icon = buildPinIcon(mess.rentPerSeat, distance, isSelected);
 
@@ -184,143 +209,42 @@ export default function ExploreMap({ messes, selectedMessId, onSelectMess, class
 
       markersRef.current.set(mess.id, marker);
     });
-  }, [messes, center, selectedMessId, onSelectMess]);
+  }, [messes, refPoint, selectedMessId, onSelectMess]);
 
   // Pan to selected mess
   useEffect(() => {
     if (!selectedMessId || !mapRef.current) return;
     const mess = messes.find((m) => m.id === selectedMessId);
     if (!mess) return;
-    mapRef.current.flyTo([mess.lat, mess.lng], 16, { duration: 0.8 });
+    mapRef.current.flyTo([mess.lat, mess.lng], 16, { duration: 0.6 });
   }, [selectedMessId, messes]);
-
-  const applyCenter = useCallback((lat: number, lng: number, label: string) => {
-    setCenter({ lat, lng, label });
-    const map = mapRef.current;
-    if (!map) return;
-
-    if (centerMarkerRef.current) {
-      centerMarkerRef.current.remove();
-    }
-    centerMarkerRef.current = L.marker([lat, lng], {
-      icon: buildCenterIcon(label),
-      interactive: false,
-      zIndexOffset: 500,
-    }).addTo(map);
-
-    // Remove old rings
-    circlesRef.current.forEach((c) => c.remove());
-    circlesRef.current = [];
-
-    [1, 2, 5].forEach((km) => {
-      const c = L.circle([lat, lng], {
-        radius: km * 1000,
-        color: "#14b8a6",
-        weight: 1,
-        opacity: 0.3,
-        fillColor: "#14b8a6",
-        fillOpacity: 0.03,
-        dashArray: "4 6",
-      }).addTo(map);
-      circlesRef.current.push(c);
-    });
-
-    map.flyTo([lat, lng], 14, { duration: 0.8 });
-  }, []);
-
-  const filteredSuggestions = BANGLADESH_AREAS.filter((a) =>
-    a.area.toLowerCase().includes(query.toLowerCase())
-  );
-
-  const pickArea = (area: (typeof BANGLADESH_AREAS)[number]) => {
-    setQuery(area.area);
-    setShowSuggestions(false);
-    applyCenter(area.lat, area.lng, area.area);
-  };
-
-  const useMyLocation = () => {
-    if (!navigator.geolocation) {
-      alert("আপনার ব্রাউজার জিওলোকেশন সাপোর্ট করে না।");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        applyCenter(pos.coords.latitude, pos.coords.longitude, "আপনার অবস্থান");
-      },
-      () => {
-        applyCenter(RAJSHAHI_UNIVERSITY.lat, RAJSHAHI_UNIVERSITY.lng, "রাজশাহী বিশ্ববিদ্যালয়");
-      }
-    );
-  };
 
   return (
     <div className={cn("relative", className)}>
-      {/* Search bar overlay */}
-      <div className="absolute left-3 top-3 z-[500] w-[calc(100%-1.5rem)] max-w-sm">
-        <div className="relative">
-          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
-            <MapPin className="size-4 shrink-0 text-teal-600" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setShowSuggestions(true);
-              }}
-              onFocus={() => setShowSuggestions(true)}
-              placeholder="এলাকা খুঁজুন (যেমন: Kazla, Motihar...)"
-              className="h-7 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
-            />
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={useMyLocation}
-              className="h-7 shrink-0 gap-1 px-2 text-xs text-teal-600"
-              title="আমার অবস্থান ব্যবহার করুন"
-            >
-              <Navigation className="size-3.5" />
-              <span className="hidden sm:inline">আমার অবস্থান</span>
-            </Button>
-          </div>
-
-          {showSuggestions && filteredSuggestions.length > 0 && (
-            <div className="mt-1 max-h-60 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
-              {filteredSuggestions.map((a) => (
-                <button
-                  key={a.area}
-                  onClick={() => pickArea(a)}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition hover:bg-teal-50"
-                >
-                  <MapPin className="size-3.5 shrink-0 text-teal-500" />
-                  <span className="font-medium">{a.area}</span>
-                  <span className="text-xs text-slate-400">{a.city}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Info badge */}
-      <div className="absolute right-3 top-3 z-[500] hidden rounded-lg border border-slate-200 bg-white/95 px-3 py-1.5 text-xs shadow-lg sm:block">
+      <div className="absolute right-3 bottom-3 z-[500] hidden rounded-lg border border-slate-200 bg-white/95 px-3 py-1.5 text-xs shadow-lg sm:block">
         <span className="font-semibold text-teal-700">{messes.length}</span>{" "}
-        <span className="text-slate-600">টি মেস ম্যাপে দেখানো হচ্ছে</span>
+        <span className="text-slate-600">টি মেস</span>
+        {maxDistance !== null && (
+          <span className="text-slate-500"> · ≤{maxDistance} কিমি</span>
+        )}
       </div>
 
       {/* Legend */}
       <div className="absolute bottom-3 left-3 z-[500] rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs shadow-lg">
-        <div className="mb-1 font-semibold text-slate-700">দূরত্ব রিং</div>
-        <div className="flex items-center gap-1.5">
-          <span className="inline-block size-2 rounded-full bg-teal-500" />
-          <span className="text-slate-600">১ কিমি</span>
+        <div className="mb-1 flex items-center gap-1.5 font-semibold text-slate-700">
+          <MapPin className="size-3 text-teal-600" />
+          {refPoint.label}
         </div>
+        {maxDistance !== null ? (
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block size-2 rounded-full bg-teal-600 ring-2 ring-teal-300" />
+            <span className="text-slate-600">সার্চ রেঞ্জ: {maxDistance} কিমি</span>
+          </div>
+        ) : null}
         <div className="flex items-center gap-1.5">
           <span className="inline-block size-2 rounded-full bg-teal-400" />
-          <span className="text-slate-600">২ কিমি</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="inline-block size-2 rounded-full bg-teal-300" />
-          <span className="text-slate-600">৫ কিমি</span>
+          <span className="text-slate-600">১/২/৫ কিমি রিং</span>
         </div>
       </div>
 
@@ -328,10 +252,10 @@ export default function ExploreMap({ messes, selectedMessId, onSelectMess, class
       <div
         ref={containerRef}
         className="h-full w-full"
-        style={{ minHeight: "500px", zIndex: 0 }}
+        style={{ minHeight: "400px", zIndex: 0 }}
       />
 
-      {/* Custom CSS for pins */}
+      {/* Custom CSS */}
       <style dangerouslySetInnerHTML={{ __html: PIN_CSS }} />
     </div>
   );

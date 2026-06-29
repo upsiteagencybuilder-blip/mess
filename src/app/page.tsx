@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import LandingHero from "@/components/mess/LandingHero";
-import MessList from "@/components/mess/MessList";
-import MapExplore from "@/components/mess/MapExplore";
+import MapLanding from "@/components/mess/MapLanding";
 import MessDetailDialog from "@/components/mess/MessDetailDialog";
 import AuthDialog from "@/components/mess/AuthDialog";
 import ProfileDialog from "@/components/mess/ProfileDialog";
@@ -26,8 +24,6 @@ export default function Home() {
   const view = useAppStore((s) => s.view);
   const setView = useAppStore((s) => s.setView);
   const setAuthOpen = useAppStore((s) => s.setAuthOpen);
-  const landingTab = useAppStore((s) => s.landingTab);
-  const setSelectedMessId = useAppStore((s) => s.setSelectedMessId);
 
   const [bootstrapped, setBootstrapped] = useState(false);
   const [messes, setMesses] = useState<MessListItem[]>([]);
@@ -41,8 +37,6 @@ export default function Home() {
         const me = res?.user;
         if (!cancelled && me) {
           setUser(me);
-          // Only jump to dashboard if we're still on landing (avoid
-          // clobbering an explicit view choice from persisted store)
           const current = useAppStore.getState().view;
           if (current === "landing") {
             setView(viewForRole(me.role));
@@ -59,12 +53,10 @@ export default function Home() {
     };
   }, [setUser, setView]);
 
-  // Fetch all messes for the globe/hero/list
+  // Fetch all messes
   const loadMesses = useCallback(async () => {
     try {
-      const list = await apiFetch<MessListItem[]>(
-        "/api/mess?includeFull=true"
-      );
+      const list = await apiFetch<MessListItem[]>("/api/mess?includeFull=true");
       setMesses(list);
     } catch (e) {
       console.error("Failed to load messes", e);
@@ -75,7 +67,7 @@ export default function Home() {
     loadMesses();
   }, [loadMesses]);
 
-  // If a dashboard view is active but the user is not logged in, bounce to landing
+  // Bounce to landing if not logged in
   useEffect(() => {
     if (bootstrapped && view !== "landing" && !user) {
       setView("landing");
@@ -83,12 +75,7 @@ export default function Home() {
     }
   }, [bootstrapped, view, user, setView, setAuthOpen]);
 
-  const handleSelectMess = useCallback(
-    (id: string) => setSelectedMessId(id),
-    [setSelectedMessId]
-  );
-
-  // Loading splash while we restore the session
+  // Loading splash
   if (!bootstrapped) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950">
@@ -135,20 +122,12 @@ export default function Home() {
     );
   }
 
-  // Landing (public) view
+  // Landing (public) view — map-first, no 3D globe
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
-      <LandingHero messes={messes} />
-      {landingTab === "list" && (
-        <section className="mx-auto w-full max-w-7xl px-4 py-10">
-          <MessList messes={messes} onSelect={handleSelectMess} />
-        </section>
-      )}
-      {landingTab === "map" && <MapExplore messes={messes} />}
-      <Footer />
-      <MessDetailDialog />
+    <>
+      <MapLanding messes={messes} />
       <AuthDialog />
       <ProfileDialog />
-    </div>
+    </>
   );
 }

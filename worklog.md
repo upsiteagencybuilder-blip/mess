@@ -314,3 +314,38 @@ Stage Summary:
 - Distance calculated via haversine formula (real km/m from selected location). Map shows real Rajshahi streets (Kazla, Motihar, Binodpur) with 1/2/5km distance rings.
 - Geolocation support ("আমার অবস্থান") for real-world location detection.
 - Three landing modes: এক্সপ্লোর (3D globe), ম্যাপ (interactive OSM map), তালিকা (grid list).
+
+---
+Task ID: 10
+Agent: main (orchestrator)
+Task: Remove 3D globe, make interactive map the primary view with full filter panel + side detail with booking
+
+Work Log:
+- Removed 3D globe (MessGlobe/LandingHero) from page.tsx entirely — no longer imported or rendered.
+- Updated filter store (mess-filter-store.ts): added `refPoint` (lat/lng/label for distance calc), `maxDistance` (km filter), updated `filterMesses()` to filter by haversine distance.
+- Created src/components/mess/MapLanding.tsx — full-screen map-first landing with:
+  * Top header bar: logo + area search (with autocomplete) + login/profile/dashboard buttons
+  * Left filter sidebar (desktop, w-72): distance slider (0.5-10km with quick presets 500m/1km/2km/5km), price range (min/max inputs + quick presets), mess type (4 buttons), amenities (12 toggle chips with icons), vacant-only switch, dynamic result count badge, reset all button
+  * Center: ExploreMap (flex-1) with filtered pins + result count overlay (top center)
+  * Right detail panel (desktop xl, w-96): when no selection shows nearby list sorted by distance; when a pin is clicked shows full mess detail (photo, stats grid, description, amenities, contact, room/seat map, booking form)
+  * Mobile: filter sidebar collapses into a Sheet (bottom-left), detail panel slides up from bottom as an overlay
+- Rewrote ExploreMap.tsx: removed internal center state + search bar (now in header); accepts `refPoint` and `maxDistance` props; draws dynamic radius ring based on maxDistance + reference 1/2/5km rings; updates center marker + rings when refPoint changes; flies map to new center on area selection.
+- Updated page.tsx: landing view now renders only MapLanding (no LandingHero, no MessDetailDialog on landing since side panel handles detail); footer removed from landing (full-screen layout).
+- Removed MessDetailDialog from landing view to prevent conflict with side panel (both used selectedMessId).
+- Verified end-to-end with Agent Browser:
+  * No 3D globe — 2D interactive map is the primary view ✓
+  * Left filter sidebar with distance/price/type/amenities ✓
+  * Dynamic result count: 8 → 5 (2km filter) → 1 (৳4000+ price filter) ✓
+  * Combined filters work together (distance + price) ✓
+  * Click pin → right side panel with mess detail (name, rent, distance, vacant seats, amenities, contact, room/seat map, booking form) ✓
+  * Booking form submission → POST /api/booking 200 + success toast ✓
+  * Close detail → nearby list (sorted by distance) returns ✓
+  * Area search in header → map flies to that area, recalculates distances ✓
+  * No dialog conflict (MessDetailDialog not mounted on landing) ✓
+- bun run lint → 0 errors, 0 warnings
+
+Stage Summary:
+- 3D globe completely removed. Interactive Leaflet/OpenStreetMap map is now the sole primary view for exploring, searching, and filtering messes.
+- Comprehensive filter panel: distance (km slider + presets), price (range + presets), mess type (4 types), amenities (12 toggles), vacant-only switch — all work together with live result count.
+- Pin click → side detail panel with full mess info + booking form → submit → POST /api/booking → success toast. Complete "search → filter → select → book" flow on one screen.
+- Responsive: desktop 3-column (filters | map | detail), mobile (map full + filter sheet + bottom detail overlay).
