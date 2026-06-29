@@ -4,16 +4,48 @@ import type { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
-    const user = await requireUser(["OWNER", "STAFF"]);
+    const user = await requireUser(["OWNER", "STAFF", "TENANT"]);
     const { searchParams } = new URL(request.url);
     const messId = searchParams.get("messId");
     const status = searchParams.get("status");
 
-    // Get messes owned by this user
-    const ownedMesses = await db.mess.findMany({
-      where: { ownerId: user.id },
-      select: { id: true },
-    });
+    // TENANT: return only their own booking requests
+    if (user.role === "TENANT") {
+      const where: Prisma.BookingRequestWhereInput = { userId: user.id };
+      if (status) where.status = status;
+      const bookings = await db.bookingRequest.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        include: { mess: { select: { name: true, code: true, area: true, city: true, rentPerSeat: true } } },
+      });
+      return Response.json(
+        bookings.map((b) => ({
+          id: b.id,
+          messId: b.messId,
+          messName: b.mess.name,
+          messCode: b.mess.code,
+          messArea: b.mess.area,
+          messCity: b.mess.city,
+          rentPerSeat: b.mess.rentPerSeat,
+          userId: b.userId,
+          name: b.name,
+          phone: b.phone,
+          message: b.message,
+          status: b.status,
+          createdAt: b.createdAt,
+        }))
+      );
+    }
+
+    // OWNER / STAFF: return bookings for their messes
+    const ownedMesses =
+      user.role === "OWNER"
+        ? await db.mess.findMany({
+            where: { ownerId: user.id },
+            select: { id: true },
+          })
+        : await db.mess.findMany({ select: { id: true } });
+
     const ownedIds = ownedMesses.map((m) => m.id);
 
     if (ownedIds.length === 0) {

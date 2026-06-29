@@ -5,6 +5,7 @@ import LandingHero from "@/components/mess/LandingHero";
 import MessList from "@/components/mess/MessList";
 import MessDetailDialog from "@/components/mess/MessDetailDialog";
 import AuthDialog from "@/components/mess/AuthDialog";
+import ProfileDialog from "@/components/mess/ProfileDialog";
 import Footer from "@/components/Footer";
 import OwnerDashboard from "@/components/dashboards/owner/OwnerDashboard";
 import TenantDashboard from "@/components/dashboards/tenant/TenantDashboard";
@@ -106,6 +107,7 @@ export default function Home() {
         <Footer />
         <MessDetailDialog />
         <AuthDialog />
+        <ProfileDialog />
       </div>
     );
   }
@@ -116,6 +118,7 @@ export default function Home() {
         <Footer />
         <MessDetailDialog />
         <AuthDialog />
+        <ProfileDialog />
       </div>
     );
   }
@@ -126,6 +129,7 @@ export default function Home() {
         <Footer />
         <MessDetailDialog />
         <AuthDialog />
+        <ProfileDialog />
       </div>
     );
   }
@@ -142,6 +146,7 @@ export default function Home() {
       <Footer />
       <MessDetailDialog />
       <AuthDialog />
+      <ProfileDialog />
     </div>
   );
 }

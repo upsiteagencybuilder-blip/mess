@@ -9,6 +9,7 @@ import {
   X,
   ArrowRight,
   Sparkles,
+  UserCircle,
 } from "lucide-react";
 import MessGlobe from "@/components/globe/MessGlobe";
 import { Button } from "@/components/ui/button";
@@ -99,23 +100,36 @@ export default function LandingHero({ messes }: LandingHeroProps) {
             </Tabs>
 
             {user ? (
-              <Button
-                onClick={() =>
-                  setView(
-                    user.role === "OWNER"
-                      ? "owner-dashboard"
-                      : user.role === "STAFF"
-                        ? "staff-dashboard"
-                        : "tenant-dashboard"
-                  )
-                }
-                size="sm"
-                className="h-9 border border-teal-500/40 bg-teal-500/10 text-teal-200 hover:bg-teal-500/20 hover:text-teal-100"
-                variant="outline"
-              >
-                ড্যাশবোর্ড
-                <ArrowRight className="size-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() =>
+                    useAppStore.getState().setProfileOpen(true)
+                  }
+                  size="sm"
+                  className="h-9 gap-1.5 border border-teal-500/40 bg-teal-500/10 text-teal-200 hover:bg-teal-500/20 hover:text-teal-100"
+                  variant="outline"
+                >
+                  <UserCircle className="size-4" />
+                  <span className="hidden sm:inline">প্রোফাইল</span>
+                </Button>
+                <Button
+                  onClick={() =>
+                    setView(
+                      user.role === "OWNER"
+                        ? "owner-dashboard"
+                        : user.role === "STAFF"
+                          ? "staff-dashboard"
+                          : "tenant-dashboard"
+                    )
+                  }
+                  size="sm"
+                  className="h-9 border border-teal-500/40 bg-teal-500/10 text-teal-200 hover:bg-teal-500/20 hover:text-teal-100"
+                  variant="outline"
+                >
+                  ড্যাশবোর্ড
+                  <ArrowRight className="size-4" />
+                </Button>
+              </div>
             ) : (
               <Button
                 onClick={() => setAuthOpen(true, "login")}

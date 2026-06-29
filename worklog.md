@@ -190,3 +190,47 @@ Stage Summary:
 - All 5 blueprint steps implemented: mess listing & profiling (auto mess code + rooms/seats), public search & booking requests, member management (seat assignment auto-updates vacancy), billing engine (fixed rent + shared utility costs with ceil/member-count formula, digital invoices, paid/pending tracking), analytics dashboards (owner stats + 6-month revenue chart + vacancy donut; tenant bill + payment history).
 - Demo accounts: OWNER rahim@mess.com, TENANT tanvir@tenant.com, STAFF staff@mess.com (all password 123456). 8 seeded Bangladesh messes across Dhanmondi/Mohakhali/Bashundhara/Mirpur/Uttara/Mohammadpur/Farmgate/Panthapath.
 - Sticky footer verified; responsive mobile-first; teal/emerald accent system (no indigo/blue).
+
+---
+Task ID: 7
+Agent: main (orchestrator)
+Task: Fix broken interactions, build Profile section, make UX intuitive
+
+Work Log:
+- Re-seeded clean demo data (8 messes, 3 owners, 3 tenants, 1 staff, members + bills + bookings)
+- Deep-verified all flows with Agent Browser — found systemic Radix UI issues:
+  1. Radix Tabs: pointerdown-based selection didn't work → rewrote src/components/ui/tabs.tsx as custom onClick-based implementation (same API: Tabs/TabsList/TabsTrigger/TabsContent). Fixed ALL tab switching across app (landing explore/list, owner dashboard 6 tabs, staff tabs, auth dialog).
+  2. Radix DropdownMenu: same pointerdown issue → rewrote src/components/ui/dropdown-menu.tsx as custom implementation (DropdownMenu/Trigger/Content/Item/Label/Separator with onClick + outside-click + escape-to-close). Fixed all header user menus.
+- Fixed critical IIFE bug in TenantDashboard: `void (async () => {...});` was missing `()` invocation → async function defined but never called → tenant dashboard stuck in loading forever. Fixed to `(async () => {...})();`.
+- Updated booking API (GET /api/booking) to support TENANT role — tenants can now see their own booking requests (with mess name/area/rent).
+- Added profile update API: PUT /api/auth/profile (update name, phone, avatar).
+- Added profileOpen/setProfileOpen to Zustand store.
+- Built comprehensive ProfileDialog (src/components/mess/ProfileDialog.tsx):
+  - Role-aware: shows different content for TENANT/OWNER/STAFF
+  - TENANT: current mess info card (name, code, seat, room, rent, join date, address, amenities), payment summary (paid/outstanding/total bills), booking requests list with status badges, "মেস খুঁজুন" CTA for tenants without a mess
+  - OWNER: quick stats (monthly income, outstanding, vacant seats), my messes list with vacancy badges, dashboard link
+  - STAFF: info card + dashboard link
+  - Edit profile (name, phone) with save
+  - Logout button
+- Enhanced TenantDashboard empty state: now fetches + shows booking requests with status badges, plus "মেস খুঁজুন" and "প্রোফাইল দেখুন" buttons
+- Added "প্রোফাইল" button to LandingHero for logged-in users (next to "ড্যাশবোর্ড" button)
+- Added "প্রোফাইল ও সেটিংস" menu item to all 3 dashboard headers (owner, tenant, staff)
+- Mounted ProfileDialog globally in page.tsx for all views
+- Verified end-to-end with Agent Browser:
+  * Landing tabs (explore ↔ list) work ✓
+  * Mess list cards render with photos/prices/vacant seats ✓
+  * Mess detail dialog opens with seat map + booking form ✓
+  * Booking request submission works (POST /api/booking 200 + success toast) ✓
+  * Tenant dashboard loads correctly (mess info, current bill ৳8,034, payment history) ✓
+  * Owner dashboard all 6 tabs switch correctly ✓
+  * Owner billing tab: 5 utility inputs + invoice generate button ✓
+  * Dropdown menus open on click ✓
+  * Profile dialog opens with full data (mess info, payment summary, bookings) ✓
+  * Profile edit works ✓
+- bun run lint → 0 errors, 0 warnings
+
+Stage Summary:
+- Fixed 3 critical bugs that made the app unusable: Radix Tabs (all tab switching), Radix DropdownMenu (all user menus), IIFE invocation (tenant dashboard loading).
+- Built comprehensive Profile section where users manage everything: personal info (editable), mess/destination info, payment summary, booking requests, logout.
+- Made "find your mess" intuitive: tenants without a mess see their booking requests + a clear "মেস খুঁজুন" CTA; tenants with a mess see their mess info prominently in both dashboard and profile.
+- All interactions now verified working end-to-end via Agent Browser.

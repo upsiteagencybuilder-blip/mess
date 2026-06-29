@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Compass, LogOut, User as UserIcon, Tag } from "lucide-react";
+import { Compass, LogOut, User as UserIcon, Tag, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -186,6 +186,13 @@ export default function OwnerHeader({
                 </span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => useAppStore.getState().setProfileOpen(true)}
+                className="cursor-pointer"
+              >
+                <UserCircle className="size-4" />
+                প্রোফাইল ও সেটিংস
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={handleLogout}
                 disabled={loggingOut}

@@ -28,6 +28,8 @@ interface AppState {
   authOpen: boolean;
   authMode: "login" | "register";
   setAuthOpen: (open: boolean, mode?: "login" | "register") => void;
+  profileOpen: boolean;
+  setProfileOpen: (open: boolean) => void;
   selectedArea: string | null;
   setSelectedArea: (a: string | null) => void;
   refreshKey: number;
@@ -49,6 +51,8 @@ export const useAppStore = create<AppState>()(
       authMode: "login",
       setAuthOpen: (open, mode) =>
         set({ authOpen: open, authMode: mode ?? "login" }),
+      profileOpen: false,
+      setProfileOpen: (open) => set({ profileOpen: open }),
       selectedArea: null,
       setSelectedArea: (a) => set({ selectedArea: a }),
       refreshKey: 0,
