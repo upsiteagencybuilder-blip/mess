@@ -35,9 +35,12 @@ export async function createSession(userId: string) {
   const payload = Buffer.from(userId, "utf8").toString("base64url");
   const token = sign(payload);
   const cookieStore = await cookies();
+  // Use "none" + secure so cookies work in cross-site iframes (preview panel).
+  // Browsers allow secure cookies on localhost (treated as secure context).
   cookieStore.set("mess_session", token, {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "none",
+    secure: true,
     path: "/",
     maxAge: 60 * 60 * 24 * 7, // 7 days
   });

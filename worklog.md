@@ -590,3 +590,23 @@ Stage Summary:
 - Firebase Analytics confirmed working (page_view + login + booking_request events firing). Firebase Console data takes 24-48h to populate; real-time appears within minutes.
 - App data is in SQLite (Prisma) — this is correct architecture. Firebase is for analytics only, not data storage.
 - All 4 roles verified showing real data after re-seed.
+
+---
+Task ID: 18
+Agent: main (orchestrator)
+Task: Fix "Unauthorized" error — session cookie not sent in preview iframe
+
+Work Log:
+- Root cause: Session cookie used `sameSite: "lax"` which blocks cookies in cross-site iframes. The preview panel runs the app in an iframe on a different domain (chat.z.ai), so after login the cookie was SET (200) but NOT SENT on subsequent requests (401) — causing "Unauthorized" errors on all dashboard API calls.
+- Fix 1 (src/lib/auth.ts createSession): Changed cookie settings from `sameSite: "lax"` to `sameSite: "none"` + `secure: true`. This allows the cookie to be sent in cross-site iframe contexts. Browsers treat localhost as a secure context, so `secure: true` works in dev too.
+- Fix 2 (src/lib/api-client.ts apiFetch): Added automatic 401 recovery. When any API call returns 401 (except /api/auth/me), the helper clears the stale persisted store and reloads the page — which triggers a clean bootstrap → redirect to landing. This prevents "Unauthorized" from ever being displayed to the user.
+- Fix 3 (src/lib/api-client.ts): Added ApiError class with status code for better error handling.
+- Verified:
+  * Login → cookie set → subsequent API calls return 200 (not 401) ✓
+  * Stale session (expired cookie + persisted dashboard view) → page reloads → redirect to landing (8 messes visible, no "Unauthorized") ✓
+  * Owner dashboard: 18 seats, 15 vacant, 3 members (data visible) ✓
+- bun run lint → 0 errors, 0 warnings
+
+Stage Summary:
+- "Unauthorized" error fixed: cookie `sameSite: "none"` + `secure: true` enables cross-site iframe session. Automatic 401 recovery reloads to landing instead of showing error.
+- Session now persists correctly in the preview panel iframe.

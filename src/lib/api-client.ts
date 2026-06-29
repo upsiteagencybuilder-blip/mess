@@ -1,5 +1,14 @@
 // Frontend API helper with typed fetch wrappers
 
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 export async function apiFetch<T = unknown>(
   url: string,
   options?: RequestInit
@@ -16,7 +25,22 @@ export async function apiFetch<T = unknown>(
     } catch {
       // ignore
     }
-    throw new Error(msg);
+    // On 401, clear stale session and reload to landing
+    if (res.status === 401 && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(
+          "mess-app-store",
+          JSON.stringify({ state: { user: null, view: "landing" }, version: 0 })
+        );
+      } catch {
+        // ignore
+      }
+      // Reload to trigger clean bootstrap
+      if (!url.includes("/api/auth/me")) {
+        window.location.reload();
+      }
+    }
+    throw new ApiError(msg, res.status);
   }
   if (res.status === 204) return undefined as T;
   return res.json();
