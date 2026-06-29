@@ -262,6 +262,7 @@ export default function ProfileDialog() {
   return (
     <Dialog open={profileOpen} onOpenChange={(o) => setProfileOpen(o)}>
       <DialogContent className="max-h-[92vh] overflow-hidden p-0 sm:max-w-2xl">
+        <DialogTitle className="sr-only">প্রোফাইল ও সেটিংস</DialogTitle>
         {/* Header banner */}
         <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-teal-900 px-6 pb-6 pt-6">
           <button

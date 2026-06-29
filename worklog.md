@@ -349,3 +349,25 @@ Stage Summary:
 - Comprehensive filter panel: distance (km slider + presets), price (range + presets), mess type (4 types), amenities (12 toggles), vacant-only switch — all work together with live result count.
 - Pin click → side detail panel with full mess info + booking form → submit → POST /api/booking → success toast. Complete "search → filter → select → book" flow on one screen.
 - Responsive: desktop 3-column (filters | map | detail), mobile (map full + filter sheet + bottom detail overlay).
+
+---
+Task ID: 11
+Agent: main (orchestrator)
+Task: Fix "window is not defined" (Leaflet SSR) and DialogContent accessibility (missing DialogTitle) errors
+
+Work Log:
+- Root cause of "window is not defined": ExploreMap.tsx imported `leaflet` at module top-level. Although ExploreMap is a 'use client' component, Next.js still SSRs client component modules to build the initial HTML. Leaflet accesses `window` during module evaluation (L.Icon.Default setup), which crashes SSR. The module-level code `delete (L.Icon.Default.prototype as any)._getIconUrl` ran on the server.
+- Fix: Split ExploreMap into two files:
+  * `ExploreMapInner.tsx` — the actual Leaflet implementation (renamed from ExploreMap.tsx).
+  * `ExploreMap.tsx` — a thin wrapper using `next/dynamic` with `ssr: false` so Leaflet only loads in the browser. Includes a loading spinner fallback.
+- Root cause of "DialogContent requires a DialogTitle": Radix Dialog enforces an accessible title for screen readers. ProfileDialog's DialogContent had no DialogTitle child (the import existed but was unused).
+- Fix: Added `<DialogTitle className="sr-only">প্রোফাইল ও সেটিংস</DialogTitle>` as the first child of DialogContent in ProfileDialog. sr-only keeps it visually hidden but accessible to screen readers.
+- Verified both fixes with Agent Browser:
+  * Clean reload → page loads, map renders with 8 pins, no "window is not defined" error ✓
+  * Profile dialog opens → DialogTitle present ("প্রোফাইল ও সেটিংস"), no accessibility warning in console ✓
+  * No console errors of any kind ✓
+- bun run lint → 0 errors, 0 warnings
+
+Stage Summary:
+- Two runtime errors fixed: (1) Leaflet SSR window crash → dynamic import with ssr:false; (2) Radix Dialog accessibility → added sr-only DialogTitle to ProfileDialog.
+- App now loads cleanly with no console errors; map-first landing fully functional.
