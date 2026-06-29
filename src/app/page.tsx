@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import MapLanding from "@/components/mess/MapLanding";
+import MessFullDetail from "@/components/mess/MessFullDetail";
 import MessDetailDialog from "@/components/mess/MessDetailDialog";
 import AuthDialog from "@/components/mess/AuthDialog";
 import ProfileDialog from "@/components/mess/ProfileDialog";
@@ -67,9 +68,14 @@ export default function Home() {
     loadMesses();
   }, [loadMesses]);
 
-  // Bounce to landing if not logged in
+  // Bounce to landing if a dashboard view is active but user is not logged in
+  // (mess-detail is public — no login required to view)
   useEffect(() => {
-    if (bootstrapped && view !== "landing" && !user) {
+    const isDashboard =
+      view === "owner-dashboard" ||
+      view === "tenant-dashboard" ||
+      view === "staff-dashboard";
+    if (bootstrapped && isDashboard && !user) {
       setView("landing");
       setAuthOpen(true, "login");
     }
@@ -119,6 +125,17 @@ export default function Home() {
         <AuthDialog />
         <ProfileDialog />
       </div>
+    );
+  }
+
+  // Mess detail (full page) view
+  if (view === "mess-detail") {
+    return (
+      <>
+        <MessFullDetail messes={messes} />
+        <AuthDialog />
+        <ProfileDialog />
+      </>
     );
   }
 

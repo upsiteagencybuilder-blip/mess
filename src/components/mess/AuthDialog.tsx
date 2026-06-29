@@ -86,13 +86,18 @@ export default function AuthDialog() {
   const afterAuthSuccess = (u: SessionUser) => {
     setUser(u);
     setAuthOpen(false);
-    setView(
-      u.role === "OWNER"
-        ? "owner-dashboard"
-        : u.role === "STAFF"
-          ? "staff-dashboard"
-          : "tenant-dashboard"
-    );
+    // Only navigate to dashboard if on landing.
+    // If on mess-detail, stay there so user can complete booking.
+    const currentView = useAppStore.getState().view;
+    if (currentView === "landing") {
+      setView(
+        u.role === "OWNER"
+          ? "owner-dashboard"
+          : u.role === "STAFF"
+            ? "staff-dashboard"
+            : "tenant-dashboard"
+      );
+    }
     toast({
       title: `স্বাগতম, ${u.name}!`,
       description: `${roleLabel(u.role)} হিসেবে লগইন সম্পন্ন।`,

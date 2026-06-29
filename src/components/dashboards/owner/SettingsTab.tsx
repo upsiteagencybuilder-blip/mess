@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import LocationPicker from "@/components/mess/LocationPicker";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -63,6 +64,8 @@ interface FormState {
   address: string;
   area: string;
   city: string;
+  lat: number;
+  lng: number;
   rentPerSeat: string;
   contactNumber: string;
   photo1: string;
@@ -97,6 +100,8 @@ export default function SettingsTab({
       address: activeMess.address,
       area: activeMess.area,
       city: activeMess.city,
+      lat: activeMess.lat,
+      lng: activeMess.lng,
       rentPerSeat: String(activeMess.rentPerSeat),
       contactNumber: activeMess.contactNumber,
       photo1: photos[0] || "",
@@ -180,6 +185,8 @@ export default function SettingsTab({
           address: form.address.trim(),
           area: form.area,
           city: form.city,
+          lat: form.lat,
+          lng: form.lng,
           rentPerSeat: parseInt(form.rentPerSeat, 10),
           contactNumber: form.contactNumber.trim(),
           photos,
@@ -384,6 +391,16 @@ export default function SettingsTab({
                 id="s-addr"
                 value={form.address}
                 onChange={(e) => update("address", e.target.value)}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <LocationPicker
+                value={{ lat: form.lat, lng: form.lng }}
+                onChange={(v) => {
+                  setForm((f) => (f ? { ...f, lat: v.lat, lng: v.lng } : f));
+                }}
+                label="মেসের সঠিক অবস্থান (ভুল থাকলে ম্যাপে ক্লিক করে ঠিক করুন)"
+                height={280}
               />
             </div>
             <div className="flex flex-col gap-1.5">

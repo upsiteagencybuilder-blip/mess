@@ -43,19 +43,20 @@ export function messTypeLabel(type: string): string {
 }
 
 // Bangladesh areas with coordinates — focused on Rajshahi University surroundings
+// Coordinates verified via OpenStreetMap Nominatim geocoding
 export const BANGLADESH_AREAS = [
-  { area: "Kazla", city: "Rajshahi", lat: 24.3660, lng: 88.6272 },
-  { area: "Motihar", city: "Rajshahi", lat: 24.3700, lng: 88.6200 },
-  { area: "Binodpur", city: "Rajshahi", lat: 24.3580, lng: 88.6285 },
-  { area: "Talaimari", city: "Rajshahi", lat: 24.3500, lng: 88.6350 },
-  { area: "Baharampur", city: "Rajshahi", lat: 24.3400, lng: 88.6400 },
-  { area: "Alupotti", city: "Rajshahi", lat: 24.3640, lng: 88.6180 },
-  { area: "Shalbagan", city: "Rajshahi", lat: 24.3740, lng: 88.6100 },
-  { area: "Padma Residential", city: "Rajshahi", lat: 24.3450, lng: 88.6550 },
+  { area: "Kazla", city: "Rajshahi", lat: 24.3627, lng: 88.6333 },
+  { area: "Motihar", city: "Rajshahi", lat: 24.3700, lng: 88.6373 },
+  { area: "Binodpur", city: "Rajshahi", lat: 24.3676, lng: 88.6437 },
+  { area: "Talaimari", city: "Rajshahi", lat: 24.3617, lng: 88.6269 },
+  { area: "Baharampur", city: "Rajshahi", lat: 24.3800, lng: 88.5857 },
+  { area: "Alupotti", city: "Rajshahi", lat: 24.3740, lng: 88.6180 },
+  { area: "Shalbagan", city: "Rajshahi", lat: 24.3790, lng: 88.6120 },
+  { area: "Padma Residential", city: "Rajshahi", lat: 24.3550, lng: 88.6550 },
 ];
 
-// Rajshahi University center coordinate (for globe focus)
-export const RAJSHAHI_UNIVERSITY = { lat: 24.3636, lng: 88.6241, name: "Rajshahi University" };
+// Rajshahi University center coordinate (verified via OpenStreetMap)
+export const RAJSHAHI_UNIVERSITY = { lat: 24.3714, lng: 88.6422, name: "Rajshahi University" };
 
 export function formatBDT(amount: number): string {
   return "৳" + amount.toLocaleString("en-BD");

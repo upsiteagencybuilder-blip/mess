@@ -31,5 +31,5 @@ export function formatDistance(km: number): string {
   return `${Math.round(km)} কিমি`;
 }
 
-/** Default center: Rajshahi University. */
-export const DEFAULT_CENTER = { lat: 24.3636, lng: 88.6241 };
+/** Default center: Rajshahi University (verified via OpenStreetMap). */
+export const DEFAULT_CENTER = { lat: 24.3714, lng: 88.6422 };

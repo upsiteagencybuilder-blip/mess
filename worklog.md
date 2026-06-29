@@ -371,3 +371,44 @@ Work Log:
 Stage Summary:
 - Two runtime errors fixed: (1) Leaflet SSR window crash → dynamic import with ssr:false; (2) Radix Dialog accessibility → added sr-only DialogTitle to ProfileDialog.
 - App now loads cleanly with no console errors; map-first landing fully functional.
+
+---
+Task ID: 12
+Agent: main (orchestrator)
+Task: Compact side panel + full-page mess detail view with login-required booking flow
+
+Work Log:
+- Added "mess-detail" view mode to Zustand store (ViewMode type).
+- Created src/components/mess/MessFullDetail.tsx — comprehensive full-page mess detail:
+  * Sticky top bar: back button (→ landing), mess code + type badge, login/profile button
+  * Title + address + distance from reference point
+  * Photo gallery with main image, left/right arrows, thumbnail strip, dot indicators
+  * 4-card stats grid: rent, distance, vacant seats, rooms
+  * Description section
+  * Amenities grid (12 icons, 3-col on desktop)
+  * Room/seat map: each room as a card with seat badges (occupied=teal filled, vacant=dashed), room vacancy count
+  * Prev/next mess navigation (cycles through filtered list)
+  * Sticky right sidebar: contact card (manager phone + stats), booking card (3-step flow), owner info
+  * Booking flow: form → preview/confirm → done (success with checkmark)
+  * Login required: if not logged in, shows "বুকিং করতে লগইন আবশ্যক" with login + register buttons instead of form
+- Updated MapLanding DetailPanel to COMPACT mode:
+  * Photo, name, area, quick stats (rent/distance/seats), amenities preview (first 6), contact, "বিস্তারিত দেখুন" button
+  * No booking form or full seat map — those are on the full page
+  * "বিস্তারিত দেখুন" button → setView("mess-detail") navigates to full page
+- Updated AuthDialog afterAuthSuccess: only navigates to dashboard if current view is "landing". If on "mess-detail", stays there so user can complete booking.
+- Updated page.tsx: added mess-detail view rendering MessFullDetail; updated bounce-to-landing logic to only apply to dashboard views (mess-detail is public).
+- Verified end-to-end with Agent Browser:
+  * Pin click → compact side panel (photo, rent, distance, amenities preview, "বিস্তারিত দেখুন" button) ✓
+  * "বিস্তারিত দেখুন" → navigates to full-page detail (view: mess-detail) ✓
+  * Full page shows: photo gallery, stats grid, description, amenities, room/seat map, contact, booking sidebar ✓
+  * Not logged in → "বুকিং করতে লগইন আবশ্যক" with login/register buttons (no form) ✓
+  * Login from detail page → stays on detail page (not redirected to dashboard) ✓
+  * After login → booking form appears (name/phone prefilled) ✓
+  * Fill form → preview → confirm → POST /api/booking 200 → success message with checkmark ✓
+- bun run lint → 0 errors, 0 warnings
+
+Stage Summary:
+- Side panel is now compact (summary + "বিস্তারিত দেখুন" button). Full details on a dedicated full-page view.
+- Full-page detail includes everything: photo gallery, stats, description, amenities, room/seat map, contact, prev/next navigation, and a 3-step booking flow (form → preview → success).
+- Booking requires login: logged-out users see login/register CTA; logged-in users see the form. After login from the detail page, user stays on the same page to complete booking (not redirected to dashboard).
+- Realistic flow: search → filter → pin click → compact preview → full details → login → book → success. All verified working.

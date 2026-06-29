@@ -7,7 +7,7 @@ import { BANGLADESH_AREAS } from "@/lib/constants";
 import type { MessListItem } from "@/lib/api-client";
 
 const GLOBE_RADIUS = 100;
-const HUB_CENTER = { lat: 24.3636, lng: 88.6241 }; // Rajshahi University
+const HUB_CENTER = { lat: 24.3714, lng: 88.6422 }; // Rajshahi University (verified)
 
 /** Convert latitude / longitude (degrees) to a 3D position on a sphere of the given radius. */
 function latLngToVector3(lat: number, lng: number, radius: number): THREE.Vector3 {

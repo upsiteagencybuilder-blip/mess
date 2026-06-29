@@ -700,62 +700,7 @@ function DetailPanel({
   onClose: () => void;
   isMobile?: boolean;
 }) {
-  const user = useAppStore((s) => s.user);
-  const setAuthOpen = useAppStore((s) => s.setAuthOpen);
-  const { toast } = useToast();
-
-  // Booking form state
-  const [bookingName, setBookingName] = useState("");
-  const [bookingPhone, setBookingPhone] = useState("");
-  const [bookingMsg, setBookingMsg] = useState("");
-  const [bookingSubmitting, setBookingSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      setBookingName(user.name);
-      setBookingPhone(user.phone || "");
-    } else {
-      setBookingName("");
-      setBookingPhone("");
-    }
-  }, [user, selectedMessId]);
-
-  const handleBook = async () => {
-    if (!detail) return;
-    if (!bookingName.trim() || !bookingPhone.trim()) {
-      toast({
-        title: "তথ্য অসম্পূর্ণ",
-        description: "নাম ও ফোন নম্বর প্রয়োজন",
-        variant: "destructive",
-      });
-      return;
-    }
-    setBookingSubmitting(true);
-    try {
-      await apiFetch("/api/booking", {
-        method: "POST",
-        body: JSON.stringify({
-          messId: detail.id,
-          name: bookingName,
-          phone: bookingPhone,
-          message: bookingMsg,
-        }),
-      });
-      toast({
-        title: "বুকিং রিকোয়েস্ট পাঠানো হয়েছে!",
-        description: "মেস ম্যানেজার শীঘ্রই আপনার সাথে যোগাযোগ করবেন।",
-      });
-      setBookingMsg("");
-    } catch (e) {
-      toast({
-        title: "বুকিং ব্যর্থ",
-        description: e instanceof Error ? e.message : "আবার চেষ্টা করুন",
-        variant: "destructive",
-      });
-    } finally {
-      setBookingSubmitting(false);
-    }
-  };
+  const setView = useAppStore((s) => s.setView);
 
   // No selection → show nearby list
   if (!selectedMessId) {
@@ -825,7 +770,7 @@ function DetailPanel({
     );
   }
 
-  // Selected → show detail
+  // Selected → show COMPACT summary card + "বিস্তারিত দেখুন" button
   const distance = detail
     ? haversineKm(refPoint.lat, refPoint.lng, detail.lat, detail.lng)
     : 0;
@@ -834,7 +779,7 @@ function DetailPanel({
     <div className="flex h-full flex-col">
       {/* Header with close */}
       <div className="flex items-center justify-between border-b px-4 py-3">
-        <h3 className="text-sm font-bold text-foreground">মেসের বিস্তারিত</h3>
+        <h3 className="text-sm font-bold text-foreground">নির্বাচিত মেস</h3>
         <Button variant="ghost" size="sm" onClick={onClose} className="h-7 w-7 p-0">
           <X className="size-4" />
         </Button>
@@ -847,9 +792,9 @@ function DetailPanel({
             <span className="text-sm text-muted-foreground">লোড হচ্ছে…</span>
           </div>
         ) : detail ? (
-          <div className="p-4">
+          <div className="p-3">
             {/* Photo */}
-            <div className="relative mb-3 h-40 overflow-hidden rounded-lg bg-slate-100">
+            <div className="relative mb-3 h-36 overflow-hidden rounded-lg bg-slate-100">
               {detail.photos[0] ? (
                 <img
                   src={detail.photos[0]}
@@ -861,227 +806,112 @@ function DetailPanel({
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
-                  <Building2 className="size-12 text-slate-300" />
+                  <Building2 className="size-10 text-slate-300" />
                 </div>
               )}
               <div className="absolute left-2 top-2 flex gap-1.5">
                 <Badge className="bg-teal-600 text-white hover:bg-teal-600">
                   {messTypeLabel(detail.type)}
                 </Badge>
-                <Badge className="bg-white/90 text-slate-700 hover:bg-white/90">
-                  {detail.code}
-                </Badge>
               </div>
+              {detail.vacantSeats > 0 && (
+                <div className="absolute right-2 top-2">
+                  <Badge className="bg-emerald-500 text-white hover:bg-emerald-500">
+                    ফাঁকা {detail.vacantSeats}
+                  </Badge>
+                </div>
+              )}
             </div>
 
             {/* Name + address */}
-            <h2 className="text-lg font-bold text-foreground">{detail.name}</h2>
-            <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-              <MapPin className="size-3.5 text-teal-600" />
-              {detail.address}, {detail.area}, {detail.city}
+            <h2 className="text-base font-bold text-foreground">{detail.name}</h2>
+            <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+              <MapPin className="size-3 text-teal-600" />
+              {detail.area}, {detail.city}
             </p>
 
-            {/* Stats grid */}
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <div className="rounded-lg border border-teal-200 bg-teal-50 p-2.5">
-                <div className="flex items-center gap-1 text-xs text-teal-600">
-                  <Wallet className="size-3.5" />
-                  ভাড়া/সিট
+            {/* Quick stats */}
+            <div className="mt-3 grid grid-cols-3 gap-1.5">
+              <div className="rounded-lg border border-teal-200 bg-teal-50 p-2 text-center">
+                <div className="flex items-center justify-center gap-0.5 text-[10px] text-teal-600">
+                  <Wallet className="size-3" />
+                  ভাড়া
                 </div>
-                <p className="mt-0.5 text-base font-bold text-teal-800">
+                <p className="mt-0.5 text-sm font-bold text-teal-800">
                   {formatBDT(detail.rentPerSeat)}
                 </p>
               </div>
-              <div className="rounded-lg border border-teal-200 bg-teal-50 p-2.5">
-                <div className="flex items-center gap-1 text-xs text-teal-600">
-                  <Navigation className="size-3.5" />
+              <div className="rounded-lg border border-teal-200 bg-teal-50 p-2 text-center">
+                <div className="flex items-center justify-center gap-0.5 text-[10px] text-teal-600">
+                  <Navigation className="size-3" />
                   দূরত্ব
                 </div>
-                <p className="mt-0.5 text-base font-bold text-teal-800">
+                <p className="mt-0.5 text-sm font-bold text-teal-800">
                   {formatDistance(distance)}
                 </p>
               </div>
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
-                <div className="flex items-center gap-1 text-xs text-slate-500">
-                  <BedDouble className="size-3.5" />
-                  ফাঁকা সিট
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-center">
+                <div className="flex items-center justify-center gap-0.5 text-[10px] text-slate-500">
+                  <BedDouble className="size-3" />
+                  সিট
                 </div>
-                <p className="mt-0.5 text-base font-bold text-foreground">
+                <p className="mt-0.5 text-sm font-bold text-foreground">
                   {detail.vacantSeats}/{detail.totalSeats}
-                </p>
-              </div>
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
-                <div className="flex items-center gap-1 text-xs text-slate-500">
-                  <Building2 className="size-3.5" />
-                  রুম
-                </div>
-                <p className="mt-0.5 text-base font-bold text-foreground">
-                  {detail.totalRooms}
                 </p>
               </div>
             </div>
 
-            {/* Description */}
-            {detail.description && (
-              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                {detail.description}
-              </p>
-            )}
-
-            {/* Amenities */}
+            {/* Amenities preview */}
             {detail.amenities.length > 0 && (
               <div className="mt-3">
-                <p className="mb-1.5 text-xs font-semibold text-slate-500">
-                  সুযোগ-সুবিধা
+                <p className="mb-1 text-[10px] font-semibold text-slate-500">
+                  সুযোগ-সুবিধা ({detail.amenities.length})
                 </p>
                 <div className="flex flex-wrap gap-1">
-                  {detail.amenities.map((a) => {
+                  {detail.amenities.slice(0, 6).map((a) => {
                     const Icon = getAmenityIcon(a);
                     return (
                       <span
                         key={a}
-                        className="inline-flex items-center gap-1 rounded border border-teal-200 bg-teal-50 px-1.5 py-0.5 text-[10px] font-medium text-teal-700"
+                        className="inline-flex items-center gap-0.5 rounded border border-teal-200 bg-teal-50 px-1.5 py-0.5 text-[9px] font-medium text-teal-700"
                       >
-                        <Icon className="size-3" />
+                        <Icon className="size-2.5" />
                         {a}
                       </span>
                     );
                   })}
+                  {detail.amenities.length > 6 && (
+                    <span className="text-[9px] text-slate-400">
+                      +{detail.amenities.length - 6} আরও
+                    </span>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* Contact */}
-            <div className="mt-3 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2.5">
-              <div className="flex size-9 items-center justify-center rounded-full bg-teal-500/10">
-                <Phone className="size-4 text-teal-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-[10px] text-slate-500">যোগাযোগ</p>
-                <a
-                  href={`tel:${detail.contactNumber}`}
-                  className="text-sm font-semibold text-teal-700 hover:underline"
-                >
-                  {detail.contactNumber}
-                </a>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8"
-                onClick={() => {
-                  navigator.clipboard?.writeText(detail.contactNumber);
-                  toast({ title: "নম্বর কপি হয়েছে" });
-                }}
+            {/* Contact quick */}
+            <div className="mt-3 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+              <Phone className="size-4 text-teal-600" />
+              <a
+                href={`tel:${detail.contactNumber}`}
+                className="flex-1 text-xs font-semibold text-teal-700 hover:underline"
               >
-                কপি
-              </Button>
+                {detail.contactNumber}
+              </a>
             </div>
 
-            {/* Room/seat map */}
-            <div className="mt-3">
-              <p className="mb-1.5 text-xs font-semibold text-slate-500">
-                রুম ও সিট ম্যাপ
-              </p>
-              <div className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
-                <div className="grid gap-1.5 sm:grid-cols-2">
-                  {detail.rooms.map((room) => (
-                    <div
-                      key={room.id}
-                      className="rounded border border-slate-200 bg-white p-1.5"
-                    >
-                      <p className="mb-1 text-[10px] font-semibold text-slate-600">
-                        {room.roomNumber}
-                      </p>
-                      <div className="flex flex-wrap gap-0.5">
-                        {room.seats.map((seat) => (
-                          <span
-                            key={seat.id}
-                            className={cn(
-                              "inline-flex items-center justify-center rounded px-1 py-0.5 text-[9px] font-medium",
-                              seat.status === "OCCUPIED"
-                                ? "bg-teal-500 text-white"
-                                : "border border-dashed border-teal-400 bg-teal-50 text-teal-600"
-                            )}
-                          >
-                            {seat.seatNumber}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <Separator className="my-4" />
-
-            {/* Booking form */}
-            <div className="rounded-lg border-2 border-teal-300 bg-teal-50/50 p-3">
-              <h4 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-teal-800">
-                <ArrowRight className="size-4" />
-                বুকিং রিকোয়েস্ট পাঠান
-              </h4>
-              {!user && (
-                <p className="mb-2 rounded bg-amber-50 px-2 py-1 text-[10px] text-amber-700">
-                  বুকিং করতে লগইন করুন বা নিচের তথ্য দিন।
-                </p>
-              )}
-              <div className="space-y-2">
-                <div>
-                  <label className="text-[10px] font-medium text-slate-600">
-                    পুরো নাম *
-                  </label>
-                  <Input
-                    value={bookingName}
-                    onChange={(e) => setBookingName(e.target.value)}
-                    placeholder="আপনার নাম"
-                    className="h-8 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-medium text-slate-600">
-                    ফোন নম্বর *
-                  </label>
-                  <Input
-                    value={bookingPhone}
-                    onChange={(e) => setBookingPhone(e.target.value)}
-                    placeholder="01XXXXXXXXX"
-                    className="h-8 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-medium text-slate-600">
-                    বার্তা (ঐচ্ছিক)
-                  </label>
-                  <textarea
-                    value={bookingMsg}
-                    onChange={(e) => setBookingMsg(e.target.value)}
-                    placeholder="কোন বিশেষ অনুরোধ?"
-                    rows={2}
-                    className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs outline-none focus:border-teal-400"
-                  />
-                </div>
-                <Button
-                  onClick={handleBook}
-                  disabled={bookingSubmitting}
-                  className="w-full bg-teal-600 hover:bg-teal-700"
-                  size="sm"
-                >
-                  {bookingSubmitting ? (
-                    <>
-                      <Loader2 className="mr-1 size-3.5 animate-spin" />
-                      পাঠানো হচ্ছে…
-                    </>
-                  ) : (
-                    <>
-                      রিকোয়েস্ট পাঠান
-                      <ArrowRight className="ml-1 size-3.5" />
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
+            {/* CTA: বিস্তারিত দেখুন */}
+            <Button
+              onClick={() => setView("mess-detail")}
+              className="mt-3 w-full bg-teal-600 hover:bg-teal-700"
+              size="sm"
+            >
+              বিস্তারিত দেখুন
+              <ArrowRight className="ml-1 size-4" />
+            </Button>
+            <p className="mt-1.5 text-center text-[10px] text-slate-400">
+              ছবি, সিট ম্যাপ, বুকিং ও সব তথ্যের জন্য
+            </p>
           </div>
         ) : (
           <div className="py-16 text-center text-sm text-muted-foreground">

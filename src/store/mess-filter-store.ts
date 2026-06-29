@@ -53,7 +53,7 @@ export const useMessFilter = create<MessFilterState>((set) => ({
   clearAmenities: () => set({ amenities: [] }),
   onlyVacant: false,
   setOnlyVacant: (v) => set({ onlyVacant: v }),
-  refPoint: { lat: 24.3636, lng: 88.6241, label: "রাজশাহী বিশ্ববিদ্যালয়" },
+  refPoint: { lat: 24.3714, lng: 88.6422, label: "রাজশাহী বিশ্ববিদ্যালয়" },
   setRefPoint: (p) => set({ refPoint: p }),
   maxDistance: null,
   setMaxDistance: (d) => set({ maxDistance: d }),

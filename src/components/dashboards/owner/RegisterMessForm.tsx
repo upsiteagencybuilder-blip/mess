@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import LocationPicker from "@/components/mess/LocationPicker";
 import {
   Select,
   SelectContent,
@@ -319,6 +320,18 @@ export default function RegisterMessForm({
             value={form.address}
             onChange={(e) => update("address", e.target.value)}
             placeholder="হাউজ নং, রোড নং, এলাকা"
+          />
+        </div>
+
+        {/* Location picker — exact pin on map */}
+        <div className="sm:col-span-2">
+          <LocationPicker
+            value={{ lat: form.lat, lng: form.lng }}
+            onChange={(v) => {
+              setForm((f) => ({ ...f, lat: v.lat, lng: v.lng }));
+            }}
+            label="মেসের সঠিক অবস্থান (ম্যাপে চিহ্নিত করুন) *"
+            height={280}
           />
         </div>
 

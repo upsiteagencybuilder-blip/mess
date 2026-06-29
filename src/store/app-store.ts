@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 
 export type ViewMode =
   | "landing"
+  | "mess-detail"
   | "owner-dashboard"
   | "tenant-dashboard"
   | "staff-dashboard";
