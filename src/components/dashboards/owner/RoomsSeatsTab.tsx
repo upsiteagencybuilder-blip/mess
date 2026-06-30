@@ -11,10 +11,28 @@ import {
   CheckCircle2,
   CircleDashed,
   UserPlus,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +72,60 @@ export default function RoomsSeatsTab({
   const { toast } = useToast();
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [pendingToggle, setPendingToggle] = useState<Seat | null>(null);
+  const [addRoomOpen, setAddRoomOpen] = useState(false);
+  const [newRoomNumber, setNewRoomNumber] = useState("");
+  const [newRoomCapacity, setNewRoomCapacity] = useState("2");
+  const [addingRoom, setAddingRoom] = useState(false);
+  const [deletingRoomId, setDeletingRoomId] = useState<string | null>(null);
+
+  const handleAddRoom = async () => {
+    if (!activeMess) return;
+    if (!newRoomNumber.trim()) {
+      toast({ title: "রুম নম্বর দিন", variant: "destructive" });
+      return;
+    }
+    setAddingRoom(true);
+    try {
+      await apiFetch("/api/room", {
+        method: "POST",
+        body: JSON.stringify({
+          messId: activeMess.id,
+          roomNumber: newRoomNumber.trim(),
+          capacity: Number(newRoomCapacity),
+        }),
+      });
+      toast({ title: "রুম যোগ হয়েছে", description: `${newRoomNumber} — ${newRoomCapacity} সিট` });
+      setAddRoomOpen(false);
+      setNewRoomNumber("");
+      setNewRoomCapacity("2");
+      onChanged();
+    } catch (e) {
+      toast({
+        title: "রুম যোগ ব্যর্থ",
+        description: e instanceof Error ? e.message : "",
+        variant: "destructive",
+      });
+    } finally {
+      setAddingRoom(false);
+    }
+  };
+
+  const handleDeleteRoom = async (roomId: string) => {
+    setDeletingRoomId(roomId);
+    try {
+      await apiFetch(`/api/room/${roomId}`, { method: "DELETE" });
+      toast({ title: "রুম মুছে ফেলা হয়েছে" });
+      onChanged();
+    } catch (e) {
+      toast({
+        title: "রুম মুছতে ব্যর্থ",
+        description: e instanceof Error ? e.message : "",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingRoomId(null);
+    }
+  };
 
   if (!activeMess) {
     return (
@@ -137,17 +209,80 @@ export default function RoomsSeatsTab({
             ফাঁকা (VACANT)
           </span>
         </div>
-        {onGoToMembers && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onGoToMembers}
-            className="border-teal-500/30 text-teal-700 hover:bg-teal-500/10 hover:text-teal-700"
-          >
-            <UserPlus className="size-4" />
-            মেম্বার ট্যাবে যান
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <Dialog open={addRoomOpen} onOpenChange={setAddRoomOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-teal-500/30 text-teal-700 hover:bg-teal-500/10"
+              >
+                <Plus className="size-4" />
+                রুম যোগ করুন
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle>নতুন রুম যোগ করুন</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 py-2">
+                <div>
+                  <Label className="mb-1 text-xs">রুম নম্বর / নাম *</Label>
+                  <Input
+                    value={newRoomNumber}
+                    onChange={(e) => setNewRoomNumber(e.target.value)}
+                    placeholder="যেমন: 101, 102, বা 'বড় রুম'"
+                    className="h-9"
+                  />
+                </div>
+                <div>
+                  <Label className="mb-1 text-xs">সিট সংখ্যা *</Label>
+                  <Select value={newRoomCapacity} onValueChange={setNewRoomCapacity}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6].map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n} সিট
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  onClick={handleAddRoom}
+                  disabled={addingRoom}
+                  className="w-full bg-teal-600 hover:bg-teal-700"
+                >
+                  {addingRoom ? (
+                    <>
+                      <Loader2 className="mr-1 size-4 animate-spin" />
+                      যোগ হচ্ছে…
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-1 size-4" />
+                      রুম যোগ করুন
+                    </>
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          {onGoToMembers && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onGoToMembers}
+              className="border-teal-500/30 text-teal-700 hover:bg-teal-500/10 hover:text-teal-700"
+            >
+              <UserPlus className="size-4" />
+              <span className="hidden sm:inline">মেম্বার ট্যাবে যান</span>
+              <span className="sm:hidden">মেম্বার</span>
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Rooms grid */}

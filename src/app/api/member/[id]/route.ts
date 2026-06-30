@@ -65,7 +65,7 @@ export async function PUT(
     const user = await requireUser(["OWNER"]);
     const { id } = await params;
     const body = await request.json();
-    const { status } = body as { status?: string };
+    const { status, newSeatId } = body as { status?: string; newSeatId?: string };
 
     const member = await db.member.findUnique({
       where: { id },
@@ -74,6 +74,35 @@ export async function PUT(
     if (!member) return Response.json({ error: "Not found" }, { status: 404 });
     if (!canManageMess(user, member.mess.ownerId)) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Seat reassignment: move member to a different vacant seat
+    if (newSeatId && newSeatId !== member.seatId) {
+      const newSeat = await db.seat.findUnique({
+        where: { id: newSeatId },
+        select: { id: true, messId: true, status: true },
+      });
+      if (!newSeat || newSeat.messId !== member.mess.id) {
+        return Response.json({ error: "সিট এই মেসের নয়" }, { status: 400 });
+      }
+      if (newSeat.status === "OCCUPIED") {
+        return Response.json({ error: "এই সিটে ইতিমধ্যে কেউ বসবাস করছে" }, { status: 400 });
+      }
+      // Free old seat, occupy new seat
+      await db.seat.update({
+        where: { id: member.seatId },
+        data: { status: "VACANT" },
+      });
+      await db.seat.update({
+        where: { id: newSeatId },
+        data: { status: "OCCUPIED" },
+      });
+      const updated = await db.member.update({
+        where: { id },
+        data: { seatId: newSeatId },
+      });
+      await recomputeVacantSeats(member.mess.id);
+      return Response.json(updated);
     }
 
     if (status === "LEFT") {
