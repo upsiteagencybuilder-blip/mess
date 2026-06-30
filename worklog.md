@@ -658,3 +658,43 @@ Stage Summary:
 - vercel-build.sh automatically handles schema swap + prisma generate + db push + seed.
 - DEPLOYMENT.md has complete step-by-step instructions.
 - User needs to: 1) Create free Neon PostgreSQL, 2) Push to GitHub, 3) Import to Vercel with env vars, 4) Deploy.
+
+---
+Task ID: 20
+Agent: main (orchestrator)
+Task: PWA setup, pastel color scheme, mobile responsive, owner workflow gaps
+
+Work Log:
+- Generated beautiful PWA icon (1024x1024) via z-ai image generation: teal gradient background, white house with bed icon, professional flat design.
+- Created icon set: icon-192.png, icon-512.png, apple-touch-icon.png (180), favicon-32.png, favicon-16.png using sharp.
+- Created PWA manifest.json: name, short_name, standalone display, portrait orientation, teal theme color, maskable icons, app shortcuts (search + dashboard).
+- Created service worker (public/sw.js): caches app shell, network-first for API, cache-first for static, offline fallback to cached pages.
+- Updated layout.tsx: manifest link, theme-color meta, apple-touch-icon, apple-web-app meta tags, viewport config, SW registration script, lang="bn".
+- Updated globals.css with professional pastel teal palette:
+  * Background: soft warm white (oklch 0.98 with slight teal tint)
+  * Primary: teal (oklch 0.55 0.12 180)
+  * Cards: near-white with subtle warmth
+  * Borders: very subtle teal-gray
+  * Chart colors: 5 pastel colors (teal, emerald, amber, lavender, rose)
+  * Dark mode: deep slate-teal palette
+  * Custom scrollbar, font smoothing, safe-area insets for mobile notch
+  * Smooth scrolling, 40px touch targets on mobile
+- Owner workflow gap fixes:
+  * Created POST /api/room — add a room (with seats) to existing mess dynamically
+  * Created DELETE /api/room/[id] — remove a room (blocks if occupied seats)
+  * Updated PUT /api/member/[id] — seat reassignment (move member to different vacant seat)
+  * Updated RoomsSeatsTab: "রুম যোগ করুন" button + Dialog (room number input + capacity selector 1-6)
+  * Mobile: button labels collapse on small screens ("মেম্বার ট্যাবে যান" → "মেম্বার")
+- Verified with Agent Browser:
+  * PWA: manifest linked, theme-color #0d9488, apple-touch-icon present, SW registered (1 registration, /sw.js) ✓
+  * Color: professional teal palette, visually appealing, modern ✓
+  * Mobile (390x844): layout adapts, map visible, filter button accessible ✓
+  * Add Room: dialog opens, form fills, room created (toast + room count increased) ✓
+- Pushed to GitHub: https://github.com/upsiteagencybuilder-blip/mess
+
+Stage Summary:
+- PWA fully functional: installable on mobile home screen with beautiful icon, offline support via service worker, standalone display mode.
+- Professional pastel color scheme: soft warm whites, teal primary, pastel chart colors, custom scrollbar, font smoothing.
+- Mobile responsive: all layouts adapt to narrow screens, 40px touch targets, safe-area insets.
+- Owner workflow complete: add rooms dynamically, delete rooms, reassign member seats, manage bookings with seat assignment.
+- All changes pushed to GitHub for Vercel deployment.
