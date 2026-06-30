@@ -35,15 +35,38 @@ export async function createSession(userId: string) {
   const payload = Buffer.from(userId, "utf8").toString("base64url");
   const token = sign(payload);
   const cookieStore = await cookies();
-  // Use "none" + secure so cookies work in cross-site iframes (preview panel).
-  // Browsers allow secure cookies on localhost (treated as secure context).
-  cookieStore.set("mess_session", token, {
-    httpOnly: true,
-    sameSite: "none",
-    secure: true,
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-  });
+
+  // Detect if we're on a secure context (HTTPS) or localhost.
+  // - HTTPS production (Vercel): sameSite "none" + secure for cross-site iframe
+  // - Localhost dev: sameSite "lax" (works in preview iframe, no secure flag needed)
+  const host =
+    process.env.HTTP_X_FORWARDED_HOST ||
+    process.env.HTTP_HOST ||
+    "";
+  const isSecureContext =
+    process.env.HTTP_X_FORWARDED_PROTO === "https" ||
+    host.includes("vercel.app") ||
+    host.includes(".app") ||
+    host.includes(".dev");
+
+  if (isSecureContext) {
+    // Production HTTPS: cross-site cookie for iframe support
+    cookieStore.set("mess_session", token, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+  } else {
+    // Local dev (HTTP localhost): lax is sufficient and works in preview iframe
+    cookieStore.set("mess_session", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+  }
 }
 
 export async function destroySession() {

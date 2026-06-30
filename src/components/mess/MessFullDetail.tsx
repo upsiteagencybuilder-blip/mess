@@ -26,6 +26,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getAmenityIcon } from "@/lib/icons/amenity-icons";
@@ -64,6 +71,8 @@ export default function MessFullDetail({ messes }: MessFullDetailProps) {
   const [bookingName, setBookingName] = useState("");
   const [bookingPhone, setBookingPhone] = useState("");
   const [bookingMsg, setBookingMsg] = useState("");
+  const [selectedRoomId, setSelectedRoomId] = useState<string>("");
+  const [selectedSeatId, setSelectedSeatId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -78,6 +87,8 @@ export default function MessFullDetail({ messes }: MessFullDetailProps) {
     setDetail(null);
     setPhotoIdx(0);
     setBookingStep("form");
+    setSelectedRoomId("");
+    setSelectedSeatId("");
     (async () => {
       try {
         const data = await apiFetch<MessDetail>(`/api/mess/${selectedMessId}`);
@@ -123,6 +134,14 @@ export default function MessFullDetail({ messes }: MessFullDetailProps) {
       });
       return;
     }
+    if (!selectedSeatId) {
+      toast({
+        title: "সিট নির্বাচন করুন",
+        description: "অনুগ্রহ করে একটি ফাঁকা সিট নির্বাচন করুন",
+        variant: "destructive",
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       await apiFetch("/api/booking", {
@@ -132,6 +151,7 @@ export default function MessFullDetail({ messes }: MessFullDetailProps) {
           name: bookingName,
           phone: bookingPhone,
           message: bookingMsg,
+          seatId: selectedSeatId,
         }),
       });
       setBookingStep("done");
@@ -643,6 +663,64 @@ export default function MessFullDetail({ messes }: MessFullDetailProps) {
                       ) : (
                         /* Logged in — show booking form */
                         <div className="space-y-3">
+                          {/* Room & Seat Selection */}
+                          <div>
+                            <Label className="mb-1 text-xs font-medium text-slate-600">
+                              রুম নির্বাচন করুন *
+                            </Label>
+                            <Select
+                              value={selectedRoomId}
+                              onValueChange={(v) => {
+                                setSelectedRoomId(v);
+                                setSelectedSeatId("");
+                              }}
+                            >
+                              <SelectTrigger className="h-9 text-sm">
+                                <SelectValue placeholder="রুম নির্বাচন করুন" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {detail.rooms.map((room) => {
+                                  const vacantCount = room.seats.filter(
+                                    (s) => s.status === "VACANT"
+                                  ).length;
+                                  return (
+                                    <SelectItem
+                                      key={room.id}
+                                      value={room.id}
+                                      disabled={vacantCount === 0}
+                                    >
+                                      {room.roomNumber} ({vacantCount} ফাঁকা)
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {selectedRoomId && (
+                            <div>
+                              <Label className="mb-1 text-xs font-medium text-slate-600">
+                                সিট নির্বাচন করুন *
+                              </Label>
+                              <Select
+                                value={selectedSeatId}
+                                onValueChange={setSelectedSeatId}
+                              >
+                                <SelectTrigger className="h-9 text-sm">
+                                  <SelectValue placeholder="ফাঁকা সিট নির্বাচন করুন" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {detail.rooms
+                                    .find((r) => r.id === selectedRoomId)
+                                    ?.seats.filter((s) => s.status === "VACANT")
+                                    .map((seat) => (
+                                      <SelectItem key={seat.id} value={seat.id}>
+                                        {seat.seatNumber}
+                                      </SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
                           <div>
                             <Label className="mb-1 text-xs font-medium text-slate-600">
                               পুরো নাম *
@@ -663,8 +741,8 @@ export default function MessFullDetail({ messes }: MessFullDetailProps) {
                               onChange={(e) => setBookingPhone(e.target.value)}
                               placeholder="01XXXXXXXXX"
                               className="h-9 text-sm"
-                          />
-                        </div>
+                            />
+                          </div>
                         <div>
                           <Label className="mb-1 text-xs font-medium text-slate-600">
                             বার্তা (ঐচ্ছিক)
@@ -687,10 +765,18 @@ export default function MessFullDetail({ messes }: MessFullDetailProps) {
                               });
                               return;
                             }
+                            if (!selectedSeatId) {
+                              toast({
+                                title: "সিট নির্বাচন করুন",
+                                description: "অনুগ্রহ করে একটি ফাঁকা সিট নির্বাচন করুন",
+                                variant: "destructive",
+                              });
+                              return;
+                            }
                             setBookingStep("confirm");
                           }}
                           className="w-full bg-teal-600 hover:bg-teal-700"
-                          disabled={detail.vacantSeats <= 0 && !bookingMsg}
+                          disabled={detail.vacantSeats <= 0}
                         >
                           রিকোয়েস্ট প্রিভিউ দেখুন
                           <ArrowRight className="ml-1 size-4" />
@@ -717,6 +803,17 @@ export default function MessFullDetail({ messes }: MessFullDetailProps) {
                             label="ফাঁকা সিট"
                             value={`${detail.vacantSeats} টি`}
                           />
+                          {selectedSeatId && (
+                            <Row
+                              label="নির্বাচিত সিট"
+                              value={
+                                detail.rooms
+                                  .find((r) => r.id === selectedRoomId)
+                                  ?.seats.find((s) => s.id === selectedSeatId)
+                                  ?.seatNumber || ""
+                              }
+                            />
+                          )}
                           <Separator className="my-1.5" />
                           <Row label="নাম" value={bookingName} />
                           <Row label="ফোন" value={bookingPhone} />

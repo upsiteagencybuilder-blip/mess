@@ -93,11 +93,12 @@ export async function POST(request: Request) {
     // Logged-in user is optional (public booking). If present, attach userId.
     const currentUser = await getCurrentUser();
     const body = await request.json();
-    const { messId, name, phone, message } = body as {
+    const { messId, name, phone, message, seatId } = body as {
       messId?: string;
       name?: string;
       phone?: string;
       message?: string;
+      seatId?: string;
     };
 
     if (!messId || !name || !phone) {
@@ -107,13 +108,30 @@ export async function POST(request: Request) {
     const mess = await db.mess.findUnique({ where: { id: messId }, select: { id: true } });
     if (!mess) return Response.json({ error: "Mess not found" }, { status: 404 });
 
+    // If seatId provided, validate it belongs to the mess and is vacant
+    let seatInfo = "";
+    if (seatId) {
+      const seat = await db.seat.findUnique({
+        where: { id: seatId },
+        include: { room: { select: { roomNumber: true } } },
+      });
+      if (seat && seat.messId === messId && seat.status === "VACANT") {
+        seatInfo = `[অনুরোধকৃত সিট: ${seat.room.roomNumber} - ${seat.seatNumber}]`;
+      }
+    }
+
+    // Combine seat info with user message
+    const fullMessage = [seatInfo, message ? String(message) : ""]
+      .filter(Boolean)
+      .join(" ");
+
     const booking = await db.bookingRequest.create({
       data: {
         messId,
         userId: currentUser?.id ?? null,
         name: String(name),
         phone: String(phone),
-        message: message ? String(message) : null,
+        message: fullMessage || null,
         status: "PENDING",
       },
     });
