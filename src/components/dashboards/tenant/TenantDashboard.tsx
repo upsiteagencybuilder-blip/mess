@@ -26,6 +26,8 @@ import TenantHeader from "./TenantHeader";
 import MessInfoCard, { type TenantMembership } from "./MessInfoCard";
 import CurrentBillCard, { type TenantInvoice } from "./CurrentBillCard";
 import PaymentHistoryTable from "./PaymentHistoryTable";
+import MobileBottomNav from "@/components/mess/MobileBottomNav";
+import { Receipt } from "lucide-react";
 
 interface MineResponse {
   members?: TenantMembership[];
@@ -150,22 +152,19 @@ export default function TenantDashboard() {
         )}
       </main>
 
-      <footer className="mt-auto border-t border-slate-200 bg-white py-4 dark:border-slate-800 dark:bg-slate-950">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6">
-          <span className="text-[11px] text-muted-foreground">
-            মেস সেটল · মেম্বার প্যানেল
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setView("landing")}
-            className="gap-1.5 text-xs text-muted-foreground hover:text-teal-600"
-          >
-            <ArrowLeft className="size-3.5" />
-            এক্সপ্লোরে ফিরুন
-          </Button>
-        </div>
-      </footer>
+      {/* Mobile bottom nav */}
+      <MobileBottomNav
+        tabs={[
+          { key: "mess", label: "মেস", icon: Building2 },
+          { key: "bill", label: "বিল", icon: Wallet },
+          { key: "history", label: "ইতিহাস", icon: Receipt },
+          { key: "profile", label: "প্রোফাইল", icon: UserCircle },
+        ]}
+        activeTab="mess"
+        onTabChange={() => {
+          /* scroll to relevant section */
+        }}
+      />
     </div>
   );
 }

@@ -31,6 +31,8 @@ import StaffHeader from "./StaffHeader";
 import StaffOverviewTab from "./StaffOverviewTab";
 import StaffMembersTab from "./StaffMembersTab";
 import StaffBillingTab from "./StaffBillingTab";
+import MobileBottomNav from "@/components/mess/MobileBottomNav";
+import { LayoutDashboard, Users, Receipt } from "lucide-react";
 
 export interface StaffMember {
   id: string;
@@ -99,6 +101,7 @@ export default function StaffDashboard() {
   const [loadingList, setLoadingList] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [staffTab, setStaffTab] = useState("overview");
 
   // 1. Load mess picker list once on mount
   useEffect(() => {
@@ -303,7 +306,7 @@ export default function StaffDashboard() {
                 </p>
               </div>
             ) : (
-              <Tabs defaultValue="overview" className="w-full">
+              <Tabs value={staffTab} onValueChange={setStaffTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3 bg-muted/60 sm:w-auto">
                   <TabsTrigger value="overview" className="gap-1.5">
                     পরিদর্শন
@@ -337,22 +340,16 @@ export default function StaffDashboard() {
         )}
       </main>
 
-      <footer className="mt-auto border-t border-slate-200 bg-white py-4 dark:border-slate-800 dark:bg-slate-950">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6">
-          <span className="text-[11px] text-muted-foreground">
-            মেস সেটল · স্টাফ প্যানেল (শুধু পরিদর্শন)
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setView("landing")}
-            className="gap-1.5 text-xs text-muted-foreground hover:text-teal-600"
-          >
-            <ArrowLeft className="size-3.5" />
-            এক্সপ্লোরে ফিরুন
-          </Button>
-        </div>
-      </footer>
+      {/* Mobile bottom nav */}
+      <MobileBottomNav
+        tabs={[
+          { key: "overview", label: "পরিদর্শন", icon: LayoutDashboard },
+          { key: "members", label: "মেম্বার", icon: Users },
+          { key: "billing", label: "বিলিং", icon: Receipt },
+        ]}
+        activeTab={staffTab}
+        onTabChange={setStaffTab}
+      />
     </div>
   );
 }

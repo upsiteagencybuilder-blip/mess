@@ -53,6 +53,7 @@ import { roleLabel, messTypeLabel, formatBDT, ROLES } from "@/lib/constants";
 import { bengaliMonth } from "@/lib/months";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import MobileBottomNav from "@/components/mess/MobileBottomNav";
 
 type TabKey = "overview" | "users" | "messes" | "bookings" | "invoices";
 
@@ -183,6 +184,17 @@ export default function AdminDashboard() {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Mobile bottom nav */}
+      <MobileBottomNav
+        tabs={TABS.map((t) => ({
+          key: t.key,
+          label: t.label,
+          icon: t.icon,
+        }))}
+        activeTab={tab}
+        onTabChange={(k) => setTab(k as TabKey)}
+      />
     </div>
   );
 }

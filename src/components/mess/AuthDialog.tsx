@@ -10,6 +10,7 @@ import {
   User,
   ShieldCheck,
   Sparkles,
+  Home,
 } from "lucide-react";
 import {
   Dialog,
@@ -179,19 +180,26 @@ export default function AuthDialog() {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md gap-0 overflow-hidden p-0">
-        {/* Header band */}
-        <div className="bg-gradient-to-br from-[#0a1420] via-[#0f1623] to-[#0a1420] p-6 text-center">
-          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-xl border border-teal-500/30 bg-teal-500/15">
-            <ShieldCheck className="size-6 text-teal-400" />
+        {/* Header — professional real-estate app style */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-teal-600 via-teal-700 to-slate-900 p-7 text-center">
+          {/* Decorative pattern */}
+          <div className="absolute inset-0 opacity-10" style={{
+            backgroundImage: "radial-gradient(circle at 20% 30%, white 1px, transparent 1px), radial-gradient(circle at 80% 70%, white 1px, transparent 1px)",
+            backgroundSize: "40px 40px"
+          }} />
+          <div className="relative">
+            <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm">
+              <Home className="size-7 text-white" />
+            </div>
+            <DialogTitle className="text-xl font-bold text-white">
+              {mode === "login" ? "স্বাগতম আবার!" : "যোগ দিন"}
+            </DialogTitle>
+            <DialogDescription className="mt-1 text-sm text-teal-100">
+              {mode === "login"
+                ? "আপনার অ্যাকাউন্টে প্রবেশ করুন"
+                : "মেস সেটল প্ল্যাটফর্মে নতুন অ্যাকাউন্ট তৈরি করুন"}
+            </DialogDescription>
           </div>
-          <DialogTitle className="text-lg font-bold text-white">
-            {mode === "login" ? "লগইন করুন" : "নতুন অ্যাকাউন্ট"}
-          </DialogTitle>
-          <DialogDescription className="mt-1 text-xs text-teal-200/70">
-            {mode === "login"
-              ? "আপনার অ্যাকাউন্টে প্রবেশ করুন"
-              : "MessFinder BD তে যোগ দিন"}
-          </DialogDescription>
         </div>
 
         {/* Mode toggle */}
@@ -214,7 +222,7 @@ export default function AuthDialog() {
         </div>
 
         {/* Form */}
-        <form onSubmit={submit} className="flex flex-col gap-4 p-6">
+        <form onSubmit={submit} className="flex flex-col gap-3.5 p-6">
           {mode === "register" && (
             <>
               <Field
