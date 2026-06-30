@@ -21,6 +21,8 @@ import {
   Clock,
   Home,
   ChevronDown,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,6 +66,9 @@ export default function MapLanding({ messes }: MapLandingProps) {
   const setView = useAppStore((s) => s.setView);
   const selectedMessId = useAppStore((s) => s.selectedMessId);
   const setSelectedMessId = useAppStore((s) => s.setSelectedMessId);
+
+  // Mobile view mode: "map" | "list" | "profile"
+  const [mobileTab, setMobileTab] = useState<"map" | "list" | "dashboard">("map");
 
   // Filter store
   const search = useMessFilter((s) => s.search);
@@ -144,11 +149,11 @@ export default function MapLanding({ messes }: MapLandingProps) {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-50">
-      {/* Top bar */}
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-3 shadow-sm sm:px-4">
+      {/* Top bar — clean, app-like */}
+      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200/80 bg-white/95 px-3 backdrop-blur-md sm:px-4">
         <div className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-teal-600 text-white">
-            <Home className="size-5" />
+          <div className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-white shadow-sm">
+            <Home className="size-4" />
           </div>
           <div className="hidden sm:block">
             <span className="text-sm font-bold text-foreground">মেস সেটল</span>
@@ -157,7 +162,7 @@ export default function MapLanding({ messes }: MapLandingProps) {
         </div>
 
         {/* Global search */}
-        <div className="relative flex-1 max-w-md mx-2 sm:mx-4">
+        <div className="relative flex-1 max-w-md mx-1 sm:mx-4">
           <AreaSearch
             value={search}
             onChange={setSearch}
@@ -169,16 +174,15 @@ export default function MapLanding({ messes }: MapLandingProps) {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Mobile filter button */}
+          {/* Filter button — visible on all sizes */}
           <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="relative h-9 gap-1.5 lg:hidden"
+                className="relative h-9 w-9 p-0 lg:hidden"
               >
                 <SlidersHorizontal className="size-4" />
-                <span className="hidden sm:inline">ফিল্টার</span>
                 {hasActiveFilters && (
                   <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-teal-600 text-[10px] font-bold text-white">
                     !
@@ -214,16 +218,17 @@ export default function MapLanding({ messes }: MapLandingProps) {
             </SheetContent>
           </Sheet>
 
+          {/* Desktop only: profile + dashboard */}
           {user ? (
             <>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setProfileOpen(true)}
-                className="h-9 gap-1.5"
+                className="hidden h-9 gap-1.5 sm:flex"
               >
                 <UserCircle className="size-4 text-teal-600" />
-                <span className="hidden max-w-20 truncate sm:inline">
+                <span className="max-w-20 truncate">
                   {user.name.split(" ")[0]}
                 </span>
               </Button>
@@ -235,7 +240,9 @@ export default function MapLanding({ messes }: MapLandingProps) {
                       ? "owner-dashboard"
                       : user.role === "STAFF"
                         ? "staff-dashboard"
-                        : "tenant-dashboard"
+                        : user.role === "ADMIN"
+                          ? "admin-dashboard"
+                          : "tenant-dashboard"
                   )
                 }
                 className="hidden h-9 gap-1.5 bg-teal-600 hover:bg-teal-700 sm:flex"
@@ -248,19 +255,19 @@ export default function MapLanding({ messes }: MapLandingProps) {
             <Button
               size="sm"
               onClick={() => setAuthOpen(true, "login")}
-              className="h-9 gap-1.5 bg-teal-600 hover:bg-teal-700"
+              className="hidden h-9 gap-1.5 bg-teal-600 hover:bg-teal-700 sm:flex"
             >
               <LogIn className="size-4" />
-              <span className="hidden sm:inline">লগইন</span>
+              লগইন
             </Button>
           )}
         </div>
       </header>
 
       {/* Main content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left filter sidebar — desktop */}
-        <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col">
+      <div className="relative flex flex-1 overflow-hidden">
+        {/* Left filter sidebar — desktop only */}
+        <aside className="hidden w-72 shrink-0 border-r border-slate-200/80 bg-white lg:flex lg:flex-col">
           <div className="border-b px-4 py-3">
             <h2 className="flex items-center gap-2 text-sm font-bold text-foreground">
               <SlidersHorizontal className="size-4 text-teal-600" />
@@ -287,8 +294,11 @@ export default function MapLanding({ messes }: MapLandingProps) {
           </ScrollArea>
         </aside>
 
-        {/* Map area */}
-        <div className="relative flex-1">
+        {/* Map/List area — adapts to mobile tab */}
+        <div className={cn(
+          "relative flex-1",
+          mobileTab !== "map" && "hidden lg:block"
+        )}>
           <ExploreMap
             messes={filteredMesses}
             selectedMessId={selectedMessId}
@@ -312,6 +322,67 @@ export default function MapLanding({ messes }: MapLandingProps) {
             )}
           </div>
         </div>
+
+        {/* Mobile list view */}
+        {mobileTab === "list" && (
+          <div className="flex-1 overflow-y-auto bg-slate-50 lg:hidden">
+            <div className="p-3">
+              <h2 className="mb-3 text-sm font-bold text-foreground">
+                কাছাকাছি মেস ({filteredMesses.length})
+              </h2>
+              <div className="space-y-2">
+                {[...filteredMesses]
+                  .map((m) => ({
+                    ...m,
+                    distance: haversineKm(refPoint.lat, refPoint.lng, m.lat, m.lng),
+                  }))
+                  .sort((a, b) => a.distance - b.distance)
+                  .map((m, idx) => (
+                    <button
+                      key={m.id}
+                      onClick={() => {
+                        setSelectedMessId(m.id);
+                        setMobileTab("map");
+                      }}
+                      className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm transition active:scale-[0.98]"
+                    >
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-500/10 text-xs font-bold text-teal-700">
+                        {idx + 1}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-foreground">
+                          {m.name}
+                        </p>
+                        <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-0.5">
+                            <MapPin className="size-3" />
+                            {m.area}
+                          </span>
+                          <span className="flex items-center gap-0.5 text-teal-600">
+                            <Navigation className="size-3" />
+                            {formatDistance(m.distance)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-teal-700">
+                          {formatBDT(m.rentPerSeat)}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          ফাঁকা {m.vacantSeats}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                {filteredMesses.length === 0 && (
+                  <div className="py-8 text-center text-sm text-muted-foreground">
+                    কোনো মেস পাওয়া যায়নি
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Right detail panel — desktop */}
         <aside className="hidden w-96 shrink-0 border-l border-slate-200 bg-white xl:flex xl:flex-col">
@@ -355,6 +426,78 @@ export default function MapLanding({ messes }: MapLandingProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Bottom Navigation Bar — mobile only, app-like */}
+      <nav className="flex h-16 shrink-0 items-center justify-around border-t border-slate-200/80 bg-white/95 px-2 backdrop-blur-md lg:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <button
+          onClick={() => setMobileTab("map")}
+          className={cn(
+            "flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 transition",
+            mobileTab === "map"
+              ? "text-teal-600"
+              : "text-slate-400"
+          )}
+        >
+          <MapPin className={cn("size-5", mobileTab === "map" && "fill-teal-100")} />
+          <span className="text-[10px] font-medium">ম্যাপ</span>
+        </button>
+        <button
+          onClick={() => setMobileTab("list")}
+          className={cn(
+            "flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 transition",
+            mobileTab === "list"
+              ? "text-teal-600"
+              : "text-slate-400"
+          )}
+        >
+          <List className="size-5" />
+          <span className="text-[10px] font-medium">তালিকা</span>
+        </button>
+        <button
+          onClick={() => {
+            if (user) {
+              setView(
+                user.role === "OWNER"
+                  ? "owner-dashboard"
+                  : user.role === "STAFF"
+                    ? "staff-dashboard"
+                    : user.role === "ADMIN"
+                      ? "admin-dashboard"
+                      : "tenant-dashboard"
+              );
+            } else {
+              setAuthOpen(true, "login");
+            }
+          }}
+          className="flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 text-slate-400 transition"
+        >
+          <LayoutGrid className="size-5" />
+          <span className="text-[10px] font-medium">ড্যাশবোর্ড</span>
+        </button>
+        <button
+          onClick={() => {
+            if (user) {
+              setProfileOpen(true);
+            } else {
+              setAuthOpen(true, "login");
+            }
+          }}
+          className="flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 text-slate-400 transition"
+        >
+          {user ? (
+            <div className="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-teal-700 text-[10px] font-bold text-white">
+              {user.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
+            </div>
+          ) : (
+            <UserCircle className="size-5" />
+          )}
+          <span className="text-[10px] font-medium">
+            {user ? "প্রোফাইল" : "লগইন"}
+          </span>
+        </button>
+      </nav>
     </div>
   );
 }
